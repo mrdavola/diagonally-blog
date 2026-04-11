@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Hammer, Users, BookOpen } from "lucide-react"
+import { addNewsletterSubscriber } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -52,9 +53,35 @@ const PAST_ISSUES = [
 
 export default function NewsletterContent() {
   const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        return
+      }
+      // Client-side Firestore write
+      await addNewsletterSubscriber(email)
+      setSuccess(true)
+      setEmail("")
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -126,25 +153,40 @@ export default function NewsletterContent() {
             Free, weekly, and actually worth reading.
           </motion.p>
 
-          <motion.form
-            {...fadeUp(0.2)}
-            onSubmit={handleSubmit}
-            className="flex flex-col sm:flex-row gap-3"
-          >
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="flex-1 border border-text-dark/15 rounded-xl px-5 py-3.5 text-text-dark placeholder:text-text-dark/40 focus:outline-none focus:ring-2 focus:ring-emerald/50 transition bg-white text-base"
-            />
-            <button
-              type="submit"
-              className="bg-emerald text-white font-semibold px-7 py-3.5 rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer"
-            >
-              Subscribe
-            </button>
-          </motion.form>
+          <AnimatePresence mode="wait">
+            {success ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="py-6"
+              >
+                <p className="text-xl font-display font-bold text-text-dark mb-1">You&rsquo;re subscribed!</p>
+                <p className="text-text-dark/60 text-sm">Look out for the next issue in your inbox.</p>
+              </motion.div>
+            ) : (
+              <motion.div key="form" {...fadeUp(0.2)}>
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="flex-1 border border-text-dark/15 rounded-xl px-5 py-3.5 text-text-dark placeholder:text-text-dark/40 focus:outline-none focus:ring-2 focus:ring-emerald/50 transition bg-white text-base"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-emerald text-white font-semibold px-7 py-3.5 rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? "Subscribing…" : "Subscribe"}
+                  </button>
+                </form>
+                {error && <p className="mt-2 text-red-600 text-sm">{error}</p>}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <motion.p {...fadeUp(0.3)} className="mt-4 text-sm text-text-dark/50">
             No spam. Unsubscribe anytime.

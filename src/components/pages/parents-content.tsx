@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus } from "lucide-react"
+import { createSubmission } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -81,10 +82,45 @@ export default function ParentsContent() {
     grade: "",
     source: "",
   })
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Firebase integration comes later
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formState.name,
+          email: formState.email,
+          type: "waitlist",
+          message: "",
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        return
+      }
+      // Client-side Firestore write
+      await createSubmission({
+        type: "waitlist",
+        name: formState.name,
+        email: formState.email,
+        data: { grade: formState.grade, source: formState.source },
+      })
+      setSuccess(true)
+      setFormState({ name: "", email: "", grade: "", source: "" })
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -211,7 +247,21 @@ export default function ParentsContent() {
             We&rsquo;ll let you know when Diagonally is available for families.
           </motion.p>
 
+          <AnimatePresence mode="wait">
+          {success ? (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="py-16 text-center"
+            >
+              <p className="text-2xl font-display font-bold text-text-dark mb-2">You&rsquo;re on the list!</p>
+              <p className="text-text-dark/60">We&rsquo;ll reach out when Diagonally is ready for families.</p>
+            </motion.div>
+          ) : (
           <motion.form
+            key="form"
             {...fadeUp(0.2)}
             onSubmit={handleSubmit}
             className="space-y-5"
@@ -272,13 +322,19 @@ export default function ParentsContent() {
               </select>
             </div>
 
+            {error && (
+              <p className="text-red-600 text-sm">{error}</p>
+            )}
             <button
               type="submit"
-              className="w-full bg-emerald text-space-deep rounded-xl px-8 py-4 font-semibold hover:bg-emerald/90 transition-colors duration-200 font-display text-lg"
+              disabled={loading}
+              className="w-full bg-emerald text-space-deep rounded-xl px-8 py-4 font-semibold hover:bg-emerald/90 transition-colors duration-200 font-display text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Join the Waitlist
+              {loading ? "Joining…" : "Join the Waitlist"}
             </button>
           </motion.form>
+          )}
+          </AnimatePresence>
         </div>
       </section>
 

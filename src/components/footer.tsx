@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BookOpen, PlayCircle, GitFork } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { NAV_LINKS, SOCIAL_LINKS, BRAND } from "@/lib/constants";
+import { addNewsletterSubscriber } from "@/lib/submissions";
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   BookOpen,
@@ -21,11 +22,35 @@ const RESOURCE_LINKS = [
 
 export function Footer() {
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: wire up newsletter subscription
-    setEmail("");
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong.");
+        return;
+      }
+      // Client-side Firestore write
+      await addNewsletterSubscriber(email);
+      setSuccess(true);
+      setEmail("");
+    } catch {
+      setError("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -126,22 +151,28 @@ export function Footer() {
               <p className="text-text-light/60 text-xs uppercase tracking-wide">
                 Stay in the loop
               </p>
-              <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-white/5 border border-white/10 text-text-light placeholder:text-text-light/30 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-primary transition-colors"
-                />
-                <button
-                  type="submit"
-                  className="bg-blue-deep hover:bg-blue-deep/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
-                >
-                  Subscribe
-                </button>
-              </form>
+              {success ? (
+                <p className="text-emerald text-sm font-medium">You&rsquo;re subscribed!</p>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-white/5 border border-white/10 text-text-light placeholder:text-text-light/30 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-primary transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-deep hover:bg-blue-deep/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? "Subscribing…" : "Subscribe"}
+                  </button>
+                  {error && <p className="text-red-400 text-xs">{error}</p>}
+                </form>
+              )}
             </div>
           </div>
         </div>

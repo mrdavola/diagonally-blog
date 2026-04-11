@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles, Users, Shield, RefreshCw, Check } from "lucide-react"
 import { Constellation } from "@/components/constellation"
 import { WaveDivider } from "@/components/wave-divider"
+import { createSubmission } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -60,10 +61,50 @@ export default function SchoolsContent() {
     numStudents: "",
     message: "",
   })
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Firebase integration comes later
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formState.yourName,
+          email: formState.email,
+          type: "demo",
+          message: formState.message,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        return
+      }
+      // Client-side Firestore write
+      await createSubmission({
+        type: "demo",
+        name: formState.yourName,
+        email: formState.email,
+        data: {
+          schoolName: formState.schoolName,
+          role: formState.role,
+          numStudents: formState.numStudents,
+          message: formState.message,
+        },
+      })
+      setSuccess(true)
+      setFormState({ schoolName: "", yourName: "", role: "", email: "", numStudents: "", message: "" })
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -293,7 +334,21 @@ export default function SchoolsContent() {
             Fill out the form below and we&rsquo;ll be in touch within one business day.
           </motion.p>
 
+          <AnimatePresence mode="wait">
+          {success ? (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="py-16 text-center"
+            >
+              <p className="text-2xl font-display font-bold text-text-dark mb-2">Thank you!</p>
+              <p className="text-text-dark/60">We&rsquo;ll be in touch within one business day.</p>
+            </motion.div>
+          ) : (
           <motion.form
+            key="form"
             {...fadeUp(0.2)}
             onSubmit={handleSubmit}
             className="space-y-5"
@@ -383,13 +438,19 @@ export default function SchoolsContent() {
               />
             </div>
 
+            {error && (
+              <p className="text-red-600 text-sm">{error}</p>
+            )}
             <button
               type="submit"
-              className="w-full bg-blue-deep text-white rounded-xl px-8 py-4 font-semibold hover:bg-blue-deep/90 transition-colors duration-200 font-display text-lg"
+              disabled={loading}
+              className="w-full bg-blue-deep text-white rounded-xl px-8 py-4 font-semibold hover:bg-blue-deep/90 transition-colors duration-200 font-display text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Request a Demo
+              {loading ? "Sending…" : "Request a Demo"}
             </button>
           </motion.form>
+          )}
+          </AnimatePresence>
         </div>
       </section>
     </>

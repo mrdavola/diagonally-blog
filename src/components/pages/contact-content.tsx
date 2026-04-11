@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { createSubmission } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -16,9 +17,38 @@ export default function ContactContent() {
   const [email, setEmail] = useState("")
   const [inquiryType, setInquiryType] = useState("")
   const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState("")
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, type: inquiryType, message }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.")
+        return
+      }
+      // Client-side Firestore write
+      await createSubmission({ type: (inquiryType as "contact" | "demo" | "waitlist") || "contact", name, email, data: { message, inquiryType } })
+      setSuccess(true)
+      setName("")
+      setEmail("")
+      setInquiryType("")
+      setMessage("")
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -54,7 +84,20 @@ export default function ContactContent() {
               <h2 className="font-display text-xl font-bold text-text-dark mb-6">
                 Send us a message
               </h2>
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <AnimatePresence mode="wait">
+                {success ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="py-12 text-center"
+                  >
+                    <p className="text-2xl font-display font-bold text-text-dark mb-2">Thank you!</p>
+                    <p className="text-text-dark/60">We&rsquo;ll be in touch soon.</p>
+                  </motion.div>
+                ) : (
+                <motion.form key="form" onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label
                     htmlFor="name"
@@ -130,13 +173,19 @@ export default function ContactContent() {
                   />
                 </div>
 
+                {error && (
+                  <p className="text-red-600 text-sm">{error}</p>
+                )}
                 <button
                   type="submit"
-                  className="w-full bg-blue-deep text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
+                  disabled={loading}
+                  className="w-full bg-blue-deep text-white font-semibold py-3 px-6 rounded-xl hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {loading ? "Sending…" : "Send Message"}
                 </button>
-              </form>
+              </motion.form>
+              )}
+              </AnimatePresence>
             </motion.div>
 
             {/* Sidebar */}
