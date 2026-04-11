@@ -14,6 +14,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${title} — Diagonally Blog`,
     description: "Read this post on the Diagonally blog.",
+    openGraph: {
+      title: `${title} — Diagonally Blog`,
+      description: "Read this post on the Diagonally blog.",
+      url: `https://diagonally.org/blog/${slug}`,
+      siteName: "Diagonally",
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} — Diagonally Blog`,
+      description: "Read this post on the Diagonally blog.",
+    },
   }
 }
 
