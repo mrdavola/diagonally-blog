@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Syne, Nunito } from "next/font/google";
 import "./globals.css";
+import { LayoutShell } from "@/components/layout-shell";
 
 const syne = Syne({
   variable: "--font-display",
@@ -31,7 +32,7 @@ export default function RootLayout({
       className={`${syne.variable} ${nunito.variable}`}
     >
       <body className="font-body antialiased bg-cream text-text-dark">
-        {children}
+        <LayoutShell>{children}</LayoutShell>
       </body>
     </html>
   );
