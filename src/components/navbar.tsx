@@ -35,15 +35,22 @@ export function Navbar() {
 
     if (!el) return;
 
+    // Use a canvas to reliably convert any CSS color (rgb, oklch, hsl, etc.) to RGB
+    const ctx = document.createElement("canvas").getContext("2d");
+    if (!ctx) return;
+
     // Walk up to find the section/element with a background
     let current: Element | null = el;
     while (current && current !== document.body) {
       const bg = getComputedStyle(current).backgroundColor;
       if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
-        // Parse rgb values to determine lightness
-        const match = bg.match(/\d+/g);
+        ctx.fillStyle = bg;
+        const hex = ctx.fillStyle; // Canvas normalizes any color to #rrggbb or rgba
+        const match = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
         if (match) {
-          const [r, g, b] = match.map(Number);
+          const r = parseInt(match[1], 16);
+          const g = parseInt(match[2], 16);
+          const b = parseInt(match[3], 16);
           const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
           setOnDark(luminance < 0.5);
         }
