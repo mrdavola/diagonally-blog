@@ -51,7 +51,7 @@ export function ImageField({ value, onChange }: ImageFieldProps) {
           <img
             src={value}
             alt="Preview"
-            className="rounded-lg max-h-32 object-cover border border-white/10"
+            className="rounded-xl max-h-32 object-cover border border-admin-border"
           />
           <button
             onClick={() => onChange("")}
@@ -68,10 +68,10 @@ export function ImageField({ value, onChange }: ImageFieldProps) {
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
-        className={`border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition ${
+        className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors bg-admin-surface/50 ${
           dragOver
-            ? "border-blue-400 bg-blue-500/10"
-            : "border-white/20 hover:border-white/40 bg-space-deep/30"
+            ? "border-blue-primary/40 bg-blue-primary/5"
+            : "border-admin-border hover:border-blue-primary/30"
         }`}
       >
         {uploading ? (
@@ -105,7 +105,7 @@ export function ImageField({ value, onChange }: ImageFieldProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Or paste image URL…"
-        className="w-full bg-space-deep/50 border border-white/10 text-white text-sm rounded-lg px-3 py-2 placeholder:text-text-light/30 focus:outline-none focus:border-blue-500/50"
+        className="w-full bg-admin-surface border border-admin-border text-white text-sm rounded-lg px-3 py-2.5 placeholder:text-text-light/30 focus:outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
       />
     </div>
   )

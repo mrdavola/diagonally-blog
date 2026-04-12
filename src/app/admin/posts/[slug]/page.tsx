@@ -470,7 +470,7 @@ export default function PostEditorPage() {
           {!isNew && (
             <button
               onClick={() => setHistoryOpen(true)}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition"
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-text-light/70 rounded-xl px-4 py-2 text-sm font-medium transition"
               title="Version history"
             >
               <History className="w-4 h-4" />
@@ -484,7 +484,7 @@ export default function PostEditorPage() {
               <button
                 onClick={handleSharePreview}
                 disabled={generatingPreview}
-                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-text-light/70 rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
                 title="Share draft preview link"
               >
                 {generatingPreview ? (
@@ -513,12 +513,12 @@ export default function PostEditorPage() {
                     <input
                       readOnly
                       value={previewUrl}
-                      className="flex-1 bg-white/5 border border-white/10 text-text-light/70 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none truncate"
+                      className="flex-1 bg-admin-surface border border-admin-border text-text-light/70 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none truncate"
                       onClick={(e) => (e.target as HTMLInputElement).select()}
                     />
                     <button
                       onClick={handleCopyPreviewUrl}
-                      className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg px-3 py-2 text-xs font-medium transition flex-shrink-0"
+                      className="flex items-center gap-1.5 bg-blue-deep hover:bg-blue-deep/80 text-white rounded-lg px-3 py-2 text-xs font-medium transition flex-shrink-0"
                     >
                       {previewCopied ? (
                         <>
@@ -555,7 +555,7 @@ export default function PostEditorPage() {
           <div className="relative">
             <button
               onClick={() => setShowSchedule((v) => !v)}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition"
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-text-light/70 rounded-xl px-4 py-2 text-sm font-medium transition"
             >
               <Calendar className="w-4 h-4" />
               Schedule
@@ -576,7 +576,7 @@ export default function PostEditorPage() {
                   <button
                     onClick={handleSchedule}
                     disabled={!scheduleDateInput || saving}
-                    className="flex-1 bg-blue-700 hover:bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50"
+                    className="flex-1 bg-blue-deep hover:bg-blue-deep/80 text-white rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50"
                   >
                     Confirm
                   </button>
@@ -593,7 +593,7 @@ export default function PostEditorPage() {
 
           <button
             onClick={() => setSaveTemplateOpen(true)}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition"
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-text-light/70 rounded-xl px-4 py-2 text-sm font-medium transition"
             title="Save as Template"
           >
             <LayoutTemplate className="w-4 h-4" />
