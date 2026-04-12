@@ -67,11 +67,16 @@ export function Navbar() {
       setScrolled(window.scrollY > 50);
       detectBackground();
     };
-    // Detect after paint so the hero background is rendered
+    // Try multiple times to catch the background once it's painted
+    detectBackground();
     const raf = requestAnimationFrame(() => detectBackground());
+    const t1 = setTimeout(() => detectBackground(), 100);
+    const t2 = setTimeout(() => detectBackground(), 300);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
       window.removeEventListener("scroll", handleScroll);
     };
   }, [detectBackground]);
@@ -79,12 +84,16 @@ export function Navbar() {
   // Re-detect on route changes (new page may have different background)
   useEffect(() => {
     setScrolled(false);
-    // Wait for the new page to paint before sampling background
-    const raf = requestAnimationFrame(() => {
-      // Extra frame to ensure styles/images are applied
-      requestAnimationFrame(() => detectBackground());
-    });
-    return () => cancelAnimationFrame(raf);
+    // Try multiple times as new page content paints
+    detectBackground();
+    const raf = requestAnimationFrame(() => detectBackground());
+    const t1 = setTimeout(() => detectBackground(), 100);
+    const t2 = setTimeout(() => detectBackground(), 300);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [pathname, detectBackground]);
 
   const isDark = onDark;
