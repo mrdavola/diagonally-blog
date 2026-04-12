@@ -153,7 +153,7 @@ export default function BlogContent() {
           category: p.category || "Build-in-Public",
           title: p.title,
           excerpt: p.excerpt || "",
-          author: p.authorId || "Diagonally Team",
+          author: p.authorIds[0] || "Diagonally Team",
           date: p.publishedAt
             ? new Date(p.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
             : "",

@@ -8,6 +8,7 @@ import { listAuthors } from "@/lib/authors"
 import { ImageField } from "@/components/admin/image-field"
 import { BlogContentEditor } from "@/components/admin/blog-content-editor"
 import type { PostDocument, ContentBlock, Author } from "@/lib/blocks/types"
+import { isTiptapContent } from "@/lib/blocks/types"
 
 const CATEGORIES = [
   { value: "build-in-public", label: "Build-in-Public" },
@@ -36,12 +37,12 @@ export default function PostEditorRoute({ params }: PostEditorRouteProps) {
   const [title, setTitle] = useState("")
   const [postSlug, setPostSlug] = useState(slug)
   const [category, setCategory] = useState("")
-  const [authorId, setAuthorId] = useState("")
+  const [authorId, setAuthorId] = useState("") // primary author (maps to authorIds[0])
   const [excerpt, setExcerpt] = useState("")
   const [coverImage, setCoverImage] = useState("")
   const [sections, setSections] = useState<ContentBlock[]>([])
   const [authors, setAuthors] = useState<Author[]>([])
-  const [status, setStatus] = useState<"draft" | "published">("draft")
+  const [status, setStatus] = useState<"draft" | "scheduled" | "published">("draft")
 
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
@@ -70,10 +71,13 @@ export default function PostEditorRoute({ params }: PostEditorRouteProps) {
           setTitle(post.title)
           setPostSlug(post.slug)
           setCategory(post.category)
-          setAuthorId(post.authorId)
+          setAuthorId(post.authorIds[0] ?? "")
           setExcerpt(post.excerpt)
           setCoverImage(post.coverImage)
-          setSections(post.draftContent)
+          // Legacy ContentBlock[] editor — skip if content is Tiptap JSON
+          if (!isTiptapContent(post.draftContent)) {
+            setSections(post.draftContent)
+          }
           setStatus(post.status)
           setSlugManuallyEdited(true) // Don't auto-update slug for existing posts
         }
@@ -92,7 +96,7 @@ export default function PostEditorRoute({ params }: PostEditorRouteProps) {
       title,
       excerpt,
       coverImage,
-      authorId,
+      authorIds: authorId ? [authorId] : [],
       category,
       draftContent: sections,
       status,

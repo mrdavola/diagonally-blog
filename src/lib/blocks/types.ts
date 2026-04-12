@@ -27,19 +27,70 @@ export interface PageVersion {
   note: string
 }
 
+// Tiptap JSON document structure
+export interface TiptapJSON {
+  type: "doc"
+  content: TiptapNode[]
+}
+
+export interface TiptapNode {
+  type: string
+  attrs?: Record<string, unknown>
+  content?: TiptapNode[]
+  marks?: { type: string; attrs?: Record<string, unknown> }[]
+  text?: string
+}
+
 export interface PostDocument {
   slug: string
   title: string
+  subtitle: string
   excerpt: string
   coverImage: string
-  authorId: string
+  coverImageFocalPoint?: { x: number; y: number }
+  authorIds: string[]
   category: string
-  draftContent: ContentBlock[]
-  publishedContent: ContentBlock[]
+  tags: string[]
+
+  // Content — Tiptap JSON format (ContentBlock[] for legacy)
+  draftContent: TiptapJSON | ContentBlock[]
+  publishedContent: TiptapJSON | ContentBlock[] | null
+
+  // SEO
+  metaTitle?: string
+  metaDescription?: string
+  ogImage?: string
+  canonicalUrl?: string
+
+  // Publishing
+  status: "draft" | "scheduled" | "published"
+  scheduledAt?: Date | null
   publishedAt: Date | null
   createdAt: Date
   updatedAt: Date
-  status: "draft" | "published"
+
+  // Computed
+  wordCount: number
+  readTimeMinutes: number
+
+  // Template
+  templateId?: string
+}
+
+// Type guard: check if content is Tiptap JSON vs legacy ContentBlock[]
+export function isTiptapContent(
+  content: TiptapJSON | ContentBlock[] | null
+): content is TiptapJSON {
+  if (!content) return false
+  return !Array.isArray(content) && "type" in content && (content as TiptapJSON).type === "doc"
+}
+
+export interface PostVersion {
+  id: string
+  content: TiptapJSON
+  wordCount: number
+  savedBy: string
+  savedAt: Date
 }
 
 export interface ContentBlock {

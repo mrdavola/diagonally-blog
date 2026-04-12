@@ -5,15 +5,17 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  addDoc,
   collection,
   query,
   orderBy,
   where,
+  limit,
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore"
 import { db } from "./firebase"
-import type { PostDocument } from "./blocks/types"
+import type { PostDocument, TiptapJSON, PostVersion } from "./blocks/types"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -24,19 +26,40 @@ function timestampToDate(ts: unknown): Date {
 }
 
 function docToPost(data: Record<string, unknown>, slug: string): PostDocument {
+  // Handle legacy authorId (string) → authorIds (string[])
+  let authorIds: string[]
+  if (Array.isArray(data.authorIds)) {
+    authorIds = data.authorIds as string[]
+  } else if (typeof data.authorId === "string" && data.authorId) {
+    authorIds = [data.authorId]
+  } else {
+    authorIds = []
+  }
+
   return {
     slug,
     title: (data.title as string) ?? "",
+    subtitle: (data.subtitle as string) ?? "",
     excerpt: (data.excerpt as string) ?? "",
     coverImage: (data.coverImage as string) ?? "",
-    authorId: (data.authorId as string) ?? "",
+    coverImageFocalPoint: (data.coverImageFocalPoint as PostDocument["coverImageFocalPoint"]) ?? undefined,
+    authorIds,
     category: (data.category as string) ?? "",
+    tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
     draftContent: (data.draftContent as PostDocument["draftContent"]) ?? [],
-    publishedContent: (data.publishedContent as PostDocument["publishedContent"]) ?? [],
+    publishedContent: (data.publishedContent as PostDocument["publishedContent"]) ?? null,
+    metaTitle: (data.metaTitle as string) ?? undefined,
+    metaDescription: (data.metaDescription as string) ?? undefined,
+    ogImage: (data.ogImage as string) ?? undefined,
+    canonicalUrl: (data.canonicalUrl as string) ?? undefined,
+    status: (data.status as "draft" | "scheduled" | "published") ?? "draft",
+    scheduledAt: data.scheduledAt ? timestampToDate(data.scheduledAt) : null,
     publishedAt: data.publishedAt ? timestampToDate(data.publishedAt) : null,
     createdAt: timestampToDate(data.createdAt),
     updatedAt: timestampToDate(data.updatedAt),
-    status: (data.status as "draft" | "published") ?? "draft",
+    wordCount: (data.wordCount as number) ?? 0,
+    readTimeMinutes: (data.readTimeMinutes as number) ?? 0,
+    templateId: (data.templateId as string) ?? undefined,
   }
 }
 
@@ -108,4 +131,66 @@ export async function publishPost(slug: string): Promise<void> {
 
 export async function deletePost(slug: string): Promise<void> {
   await deleteDoc(doc(db, "posts", slug))
+}
+
+// ─── Scheduled Posts ──────────────────────────────────────────────────────────
+
+export async function listScheduledPosts(): Promise<PostDocument[]> {
+  const postsRef = collection(db, "posts")
+  const q = query(
+    postsRef,
+    where("status", "==", "scheduled"),
+    where("scheduledAt", "<=", Timestamp.now()),
+    orderBy("scheduledAt", "asc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => docToPost(d.data() as Record<string, unknown>, d.id))
+}
+
+// ─── Post Versions ────────────────────────────────────────────────────────────
+
+export async function savePostVersion(
+  slug: string,
+  content: TiptapJSON,
+  wordCount: number,
+  savedBy: string
+): Promise<string> {
+  const versionsRef = collection(db, "posts", slug, "versions")
+  const docRef = await addDoc(versionsRef, {
+    content,
+    wordCount,
+    savedBy,
+    savedAt: serverTimestamp(),
+  })
+  return docRef.id
+}
+
+export async function listPostVersions(slug: string): Promise<PostVersion[]> {
+  const versionsRef = collection(db, "posts", slug, "versions")
+  const q = query(versionsRef, orderBy("savedAt", "desc"), limit(50))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => {
+    const data = d.data() as Record<string, unknown>
+    return {
+      id: d.id,
+      content: data.content as TiptapJSON,
+      wordCount: (data.wordCount as number) ?? 0,
+      savedBy: (data.savedBy as string) ?? "",
+      savedAt: timestampToDate(data.savedAt),
+    }
+  })
+}
+
+export async function restoreVersion(slug: string, versionId: string): Promise<void> {
+  const versionRef = doc(db, "posts", slug, "versions", versionId)
+  const versionSnap = await getDoc(versionRef)
+  if (!versionSnap.exists()) throw new Error(`Version "${versionId}" does not exist`)
+
+  const data = versionSnap.data() as Record<string, unknown>
+  const content = data.content as TiptapJSON
+
+  await updateDoc(doc(db, "posts", slug), {
+    draftContent: content,
+    updatedAt: serverTimestamp(),
+  })
 }
