@@ -64,12 +64,19 @@ export async function saveDraft(
   editedBy: string
 ): Promise<void> {
   const ref = doc(db, "pages", slug)
-  await updateDoc(ref, {
+  await setDoc(ref, {
+    slug,
+    title: slug.charAt(0).toUpperCase() + slug.slice(1),
     draftBlocks: blocks,
+    publishedBlocks: [],
+    showInNav: false,
+    navOrder: 0,
+    navLabel: slug,
     lastEditedBy: editedBy,
     lastEditedAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  })
+  }, { merge: true })
 }
 
 export async function publishPage(slug: string, publishedBy: string): Promise<void> {

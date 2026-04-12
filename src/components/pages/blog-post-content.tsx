@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { ChevronRight } from "lucide-react"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -58,8 +59,20 @@ export default function BlogPostContent({ slug }: BlogPostContentProps) {
       {/* Header */}
       <section className="bg-cream py-16">
         <div className="max-w-4xl mx-auto px-6">
-          <motion.span
+          {/* Breadcrumb */}
+          <motion.nav
             {...fadeUp(0)}
+            className="flex items-center gap-1.5 text-sm text-text-dark/50 mb-6"
+          >
+            <Link href="/" className="hover:text-blue-deep transition-colors">Home</Link>
+            <ChevronRight size={14} />
+            <Link href="/blog" className="hover:text-blue-deep transition-colors">Blog</Link>
+            <ChevronRight size={14} />
+            <span className="text-text-dark/80 truncate max-w-[200px]">{titleFromSlug}</span>
+          </motion.nav>
+
+          <motion.span
+            {...fadeUp(0.05)}
             className="inline-block bg-blue-primary/10 text-blue-primary text-xs font-semibold px-3 py-1 rounded-full"
           >
             Build-in-Public

@@ -1,14 +1,15 @@
 import Link from "next/link";
+import Image from "next/image";
 
 interface LogoProps {
   variant?: "light" | "dark";
   size?: "sm" | "md" | "lg";
 }
 
-const sizeClasses = {
-  sm: "text-xl",
-  md: "text-2xl",
-  lg: "text-4xl",
+const sizeConfig = {
+  sm: { text: "text-xl", icon: 28 },
+  md: { text: "text-2xl", icon: 34 },
+  lg: { text: "text-4xl", icon: 48 },
 };
 
 const variantClasses = {
@@ -17,23 +18,33 @@ const variantClasses = {
 };
 
 export function Logo({ variant = "dark", size = "md" }: LogoProps) {
+  const accentColor = variant === "dark" ? "text-blue-deep" : "text-blue-primary";
+  const config = sizeConfig[size];
+
   return (
     <Link
       href="/"
-      className={`inline-flex items-center font-display font-bold tracking-tight no-underline ${sizeClasses[size]} ${variantClasses[variant]}`}
+      className={`inline-flex items-center gap-2 font-display font-bold tracking-tight no-underline ${config.text} ${variantClasses[variant]}`}
       style={{ fontFamily: "var(--font-display)" }}
     >
-      {/* D with blue-primary accent */}
-      <span className="text-blue-primary">D</span>
-      <span>iagonal</span>
-      {/* The "l" gets a slight italic tilt to evoke the diagonal */}
-      <span
-        className="text-blue-primary inline-block"
-        style={{ transform: "skewX(-12deg)", display: "inline-block" }}
-      >
-        l
+      <Image
+        src="/images/logo.svg"
+        alt="Diagonally logo"
+        width={config.icon}
+        height={config.icon}
+        className={variant === "light" ? "brightness-0 invert" : ""}
+      />
+      <span>
+        <span className={accentColor}>D</span>
+        <span>iagonal</span>
+        <span
+          className={`${accentColor} inline-block`}
+          style={{ transform: "skewX(-12deg)", display: "inline-block" }}
+        >
+          l
+        </span>
+        <span>y</span>
       </span>
-      <span>y</span>
     </Link>
   );
 }

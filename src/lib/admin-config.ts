@@ -1,7 +1,9 @@
 export type Role = "superadmin" | "admin" | "editor" | "viewer"
 
 export const ADMIN_EMAILS: Record<string, Role> = {
-  // Add team emails here
+  "mrdavolatech@gmail.com": "superadmin",
+  "snicollo@gmail.com": "superadmin",
+  "barbarajauregui@gmail.com": "superadmin",
 }
 
 export const ROLE_PERMISSIONS: Record<

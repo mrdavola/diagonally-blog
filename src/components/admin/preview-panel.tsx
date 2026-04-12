@@ -25,7 +25,7 @@ export function PreviewPanel({ blocks, slug }: PreviewPanelProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       iframeRef.current?.contentWindow?.postMessage(
-        { type: "BLOCKS_UPDATE", blocks },
+        { type: "blocks-update", blocks },
         "*"
       )
     }, 300)

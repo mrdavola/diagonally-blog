@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { listPosts } from "@/lib/posts"
+import type { PostDocument } from "@/lib/blocks/types"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -132,11 +134,37 @@ function BlogCard({
 
 export default function BlogContent() {
   const [activeCategory, setActiveCategory] = useState("All")
+  const [firestorePosts, setFirestorePosts] = useState<PostDocument[] | null>(null)
+
+  useEffect(() => {
+    listPosts()
+      .then((posts) => {
+        if (posts.length > 0) setFirestorePosts(posts)
+      })
+      .catch(() => {})
+  }, [])
+
+  // If Firestore has published posts, use those; otherwise use hardcoded placeholders
+  const allPosts = firestorePosts
+    ? firestorePosts
+        .filter((p) => p.status === "published")
+        .map((p) => ({
+          slug: p.slug,
+          category: p.category || "Build-in-Public",
+          title: p.title,
+          excerpt: p.excerpt || "",
+          author: p.authorId || "Diagonally Team",
+          date: p.publishedAt
+            ? new Date(p.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+            : "",
+          gradient: "from-blue-primary/20 to-emerald/20",
+        }))
+    : POSTS
 
   const filteredPosts =
     activeCategory === "All"
-      ? POSTS
-      : POSTS.filter((p) => p.category === activeCategory)
+      ? allPosts
+      : allPosts.filter((p) => p.category === activeCategory)
 
   return (
     <>

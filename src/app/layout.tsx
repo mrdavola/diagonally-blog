@@ -19,6 +19,26 @@ export const metadata: Metadata = {
   title: "Diagonally — Math Games Built By Students, For Students",
   description:
     "A math learning platform where students build games instead of taking tests. Powered by AI, driven by student creativity.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/favicon.svg",
+  },
+  openGraph: {
+    title: "Diagonally — Math Games Built By Students, For Students",
+    description:
+      "A math learning platform where students build games instead of taking tests. Powered by AI, driven by student creativity.",
+    siteName: "Diagonally",
+    type: "website",
+    url: "https://diagonally.org",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Diagonally — Math Games Built By Students, For Students",
+    description:
+      "A math learning platform where students build games instead of taking tests.",
+  },
 };
 
 export default function RootLayout({

@@ -150,7 +150,7 @@ export default function ComparisonTableBlock({ props }: { props: Record<string, 
   // Custom rows path
   const rows = rawRows!
   const allFeatureKeys = Array.from(
-    new Set(rows.flatMap((r) => Object.keys(r.features)))
+    new Set(rows.flatMap((r) => Object.keys(r.features ?? {})))
   )
 
   return (
