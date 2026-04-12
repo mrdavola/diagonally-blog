@@ -65,6 +65,13 @@
   --color-text-light: oklch(0.920 0.008 252);
   --color-text-dark: oklch(0.224 0.027 260);
 
+  /* Admin surfaces — warmer than pure space-deep */
+  --color-admin-surface: oklch(0.155 0.008 260);
+  --color-admin-surface-raised: oklch(0.185 0.01 260);
+  --color-admin-surface-overlay: oklch(0.21 0.012 260);
+  --color-admin-border: oklch(1 0 0 / 8%);
+  --color-admin-border-subtle: oklch(1 0 0 / 5%);
+
   /* Font variables — set by layout.tsx via next/font */
   --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
