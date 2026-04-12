@@ -10,7 +10,7 @@ interface LayoutShellProps {
 
 export function LayoutShell({ children }: LayoutShellProps) {
   const pathname = usePathname();
-  const isRaw = pathname.startsWith("/admin") || pathname.startsWith("/preview");
+  const isRaw = pathname.startsWith("/admin") || pathname.startsWith("/preview") || pathname.startsWith("/editor-canvas");
 
   if (isRaw) {
     return <>{children}</>;
