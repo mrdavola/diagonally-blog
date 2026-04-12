@@ -16,18 +16,26 @@ const VIEWPORT_WIDTH: Record<Viewport, number | "full"> = {
 }
 
 export function ViewportFrame({ slug }: ViewportFrameProps) {
-  const sections       = useEditorStore(s => s.sections)
-  const viewport       = useEditorStore(s => s.viewport)
-  const selectSection  = useEditorStore(s => s.selectSection)
-  const selectBlock    = useEditorStore(s => s.selectBlock)
-  const deselect       = useEditorStore(s => s.deselect)
-  const setActivePanel = useEditorStore(s => s.setActivePanel)
+  const sections            = useEditorStore(s => s.sections)
+  const viewport            = useEditorStore(s => s.viewport)
+  const selectSection       = useEditorStore(s => s.selectSection)
+  const selectBlock         = useEditorStore(s => s.selectBlock)
+  const deselect            = useEditorStore(s => s.deselect)
+  const setActivePanel      = useEditorStore(s => s.setActivePanel)
+  const toggleBlockSelection = useEditorStore(s => s.toggleBlockSelection)
+  const selectedBlockIds    = useEditorStore(s => s.selectedBlockIds)
 
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // Keep a stable ref to sections so the message listener always sees current value
   const sectionsRef = useRef(sections)
   useEffect(() => { sectionsRef.current = sections }, [sections])
+
+  // Sync multi-select state to canvas whenever it changes
+  useEffect(() => {
+    if (!iframeRef.current) return
+    sendToCanvas(iframeRef.current, { type: "SYNC_MULTI_SELECT", payload: { selectedBlockIds } })
+  }, [selectedBlockIds])
 
   // Sync state to canvas whenever sections change
   useEffect(() => {
@@ -78,6 +86,12 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
           break
         }
 
+        case "BLOCK_MULTI_SELECT": {
+          const { blockId, sectionId } = message.payload
+          toggleBlockSelection(sectionId, blockId)
+          break
+        }
+
         case "REQUEST_INSERT": {
           const { insertType } = message.payload
           setActivePanel(insertType === "section" ? "section-inserter" : "block-inserter")
@@ -87,7 +101,7 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
     })
 
     return cleanup
-  }, [selectSection, selectBlock, deselect, setActivePanel])
+  }, [selectSection, selectBlock, deselect, setActivePanel, toggleBlockSelection])
 
   const targetWidth = VIEWPORT_WIDTH[viewport]
   const isConstrained = targetWidth !== "full"

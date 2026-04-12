@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts"
 import { useRouter } from "next/navigation"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
 import { loadPageSections, saveDraftSections } from "@/lib/visual-editor/firestore"
@@ -35,9 +36,6 @@ export function VisualEditor({ slug }: VisualEditorProps) {
 
   const init = useEditorStore((s) => s.init)
   const setSaveStatus = useEditorStore((s) => s.setSaveStatus)
-  const deselect = useEditorStore((s) => s.deselect)
-  const undo = useEditorStore((s) => s.undo)
-  const redo = useEditorStore((s) => s.redo)
   const saveStatus = useEditorStore((s) => s.saveStatus)
   const activePanel = useEditorStore((s) => s.activePanel)
   const selectedSectionId = useEditorStore((s) => s.selectedSectionId)
@@ -124,44 +122,7 @@ export function VisualEditor({ slug }: VisualEditorProps) {
 
   // ─── Keyboard shortcuts ───────────────────────────────────────────────────
 
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      const isMac = navigator.platform.toUpperCase().includes("MAC")
-      const ctrl = isMac ? e.metaKey : e.ctrlKey
-
-      if (!ctrl) {
-        if (e.key === "Escape") {
-          useEditorStore.getState().deselect()
-        }
-        return
-      }
-
-      if (e.key === "z" && !e.shiftKey) {
-        e.preventDefault()
-        useEditorStore.getState().undo()
-        return
-      }
-
-      if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
-        e.preventDefault()
-        useEditorStore.getState().redo()
-        return
-      }
-
-      if (e.key === "s") {
-        e.preventDefault()
-        handleManualSave()
-        return
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, user?.email])
-
-  // Silence unused-var warning — undo/redo/deselect are accessed via getState()
-  void undo; void redo; void deselect
+  useKeyboardShortcuts({ onManualSave: handleManualSave })
 
   // ─── Section inserter: track insertion index from canvas REQUEST_INSERT ───
 

@@ -247,9 +247,10 @@ function InsertPointButton({ point }: InsertPointButtonProps) {
 
 interface EditorRuntimeProps {
   sections: Section[]
+  selectedBlockIds?: string[]
 }
 
-export function EditorRuntime({ sections }: EditorRuntimeProps) {
+export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntimeProps) {
   const [hovered, setHovered] = useState<OverlayTarget | null>(null)
   const [selected, setSelected] = useState<OverlayTarget | null>(null)
   const [insertPoints, setInsertPoints] = useState<InsertPoint[]>([])
@@ -373,6 +374,24 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
     if (editingBlockId) return
     const target = findEditorTarget(e.target as Element)
     if (target) {
+      // Shift+click on a block → multi-select
+      if (e.shiftKey && target.kind === "block") {
+        const blockEl = document.querySelector(`[data-block-id="${target.id}"]`)
+        let sectionId: string | null = null
+        let el = blockEl?.parentElement
+        while (el && el !== document.documentElement) {
+          const sid = el.getAttribute("data-section-id")
+          if (sid) { sectionId = sid; break }
+          el = el.parentElement
+        }
+        if (sectionId) {
+          sendToParent({
+            type: "BLOCK_MULTI_SELECT",
+            payload: { blockId: target.id, sectionId },
+          })
+        }
+        return
+      }
       setSelected(target)
       sendToParent({
         type: "ELEMENT_SELECTED",
@@ -439,6 +458,16 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
 
   const isHoverSuppressed = hovered && selected && hovered.id === selected.id
   const isInlineEditing = editingBlockId !== null
+  const multiSelectCount = selectedBlockIds.length
+
+  // Compute rects for multi-selected blocks
+  const multiSelectRects: { id: string; rect: DOMRect }[] = []
+  if (multiSelectCount > 1) {
+    for (const blockId of selectedBlockIds) {
+      const el = document.querySelector(`[data-block-id="${blockId}"]`)
+      if (el) multiSelectRects.push({ id: blockId, rect: el.getBoundingClientRect() })
+    }
+  }
 
   return (
     <>
@@ -450,7 +479,7 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
         />
       )}
 
-      {!isInlineEditing && selected && (
+      {!isInlineEditing && selected && multiSelectCount <= 1 && (
         <OverlayBox
           rect={selected.rect}
           color={longPressId === selected.id ? "#f97316" : "#3b82f6"}
@@ -459,6 +488,42 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
           label={longPressId === selected.id ? "Drag mode" : undefined}
         />
       )}
+
+      {/* Multi-select overlays */}
+      {!isInlineEditing && multiSelectCount > 1 && multiSelectRects.map(({ id, rect }) => (
+        <OverlayBox
+          key={id}
+          rect={rect}
+          color="rgba(59,130,246,0.45)"
+          showHandles={false}
+        />
+      ))}
+
+      {/* Multi-select count badge */}
+      {!isInlineEditing && multiSelectCount > 1 && multiSelectRects.length > 0 && (() => {
+        const first = multiSelectRects[0].rect
+        return (
+          <div
+            style={{
+              position: "fixed",
+              top: first.top - 32,
+              left: first.left,
+              background: "#3b82f6",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: 6,
+              pointerEvents: "none",
+              zIndex: 10001,
+              userSelect: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {multiSelectCount} selected
+          </div>
+        )
+      })()}
 
       {/* Insert points between sections */}
       {insertPoints.map((point) => (

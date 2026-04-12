@@ -10,6 +10,8 @@ import {
   cloneSections, updateBlockInSections, updateSectionInSections,
   insertSectionAt, removeSectionById, removeBlockById,
   insertBlockInZone, reorderSections,
+  cloneBlockWithNewId, deepCloneWithNewIds, insertBlockAfterInZone,
+  findBlock,
 } from "./helpers"
 
 const MAX_UNDO = 50
@@ -34,6 +36,13 @@ interface EditorState {
   // History
   undoStack: Section[][]
   redoStack: Section[][]
+
+  // Clipboard
+  clipboard: { type: "block"; data: EditorBlock } | { type: "section"; data: Section } | null
+
+  // Multi-select
+  selectedBlockIds: string[]
+  multiSelectMode: boolean
 }
 
 interface EditorActions {
@@ -71,6 +80,16 @@ interface EditorActions {
 
   // Batch update (for syncing from canvas without pushing individual undo entries)
   setSections(sections: Section[]): void
+
+  // Clipboard
+  copySelected(): void
+  pasteClipboard(): void
+  duplicateSelected(): void
+
+  // Multi-select
+  toggleBlockSelection(sectionId: string, blockId: string): void
+  clearMultiSelect(): void
+  deleteMultiSelected(): void
 }
 
 function pushUndo(state: EditorState): Pick<EditorState, "undoStack" | "redoStack"> {
@@ -93,6 +112,9 @@ export const useEditorStore = create<EditorState & EditorActions>((set, get) => 
   saveStatus: "saved",
   undoStack: [],
   redoStack: [],
+  clipboard: null,
+  selectedBlockIds: [],
+  multiSelectMode: false,
 
   // Initialization
   init(slug, title, sections) {
@@ -194,4 +216,157 @@ export const useEditorStore = create<EditorState & EditorActions>((set, get) => 
 
   // Batch
   setSections(sections) { set({ sections }) },
+
+  // Clipboard
+  copySelected() {
+    const state = get()
+    if (state.selectedBlockId) {
+      const found = findBlock(state.sections, state.selectedBlockId)
+      if (found) {
+        set({ clipboard: { type: "block", data: cloneBlockWithNewId(found.block) } })
+      }
+    } else if (state.selectedSectionId) {
+      const section = state.sections.find(s => s.id === state.selectedSectionId)
+      if (section) {
+        set({ clipboard: { type: "section", data: deepCloneWithNewIds(section) } })
+      }
+    }
+  },
+
+  pasteClipboard() {
+    const state = get()
+    const { clipboard } = state
+    if (!clipboard) return
+
+    if (clipboard.type === "block") {
+      const targetSectionId = state.selectedSectionId
+      if (!targetSectionId) return
+      const section = state.sections.find(s => s.id === targetSectionId)
+      if (!section) return
+      const zoneId = section.contentZones[0]?.id
+      if (!zoneId) return
+      const newBlock = cloneBlockWithNewId(clipboard.data)
+      set({
+        ...pushUndo(state),
+        sections: insertBlockInZone(state.sections, targetSectionId, zoneId, newBlock),
+        selectedSectionId: targetSectionId,
+        selectedBlockId: newBlock.id,
+        activePanel: "properties",
+        activeTab: "content",
+        saveStatus: "unsaved",
+      })
+    } else {
+      const newSection = deepCloneWithNewIds(clipboard.data)
+      const targetIdx = state.selectedSectionId
+        ? state.sections.findIndex(s => s.id === state.selectedSectionId)
+        : -1
+      const insertAt = targetIdx === -1 ? state.sections.length : targetIdx + 1
+      set({
+        ...pushUndo(state),
+        sections: insertSectionAt(state.sections, newSection, insertAt),
+        selectedSectionId: newSection.id,
+        selectedBlockId: null,
+        activePanel: "properties",
+        activeTab: "content",
+        saveStatus: "unsaved",
+      })
+    }
+  },
+
+  duplicateSelected() {
+    const state = get()
+    // Multi-select duplicate: duplicate all selected blocks after their originals
+    if (state.multiSelectMode && state.selectedBlockIds.length > 1) {
+      let sections = state.sections
+      const newIds: string[] = []
+      for (const blockId of state.selectedBlockIds) {
+        const found = findBlock(sections, blockId)
+        if (!found) continue
+        const newBlock = cloneBlockWithNewId(found.block)
+        newIds.push(newBlock.id)
+        sections = insertBlockAfterInZone(sections, found.section.id, found.zone.id, found.block.id, newBlock)
+      }
+      set({
+        ...pushUndo(state),
+        sections,
+        selectedBlockIds: newIds,
+        saveStatus: "unsaved",
+      })
+      return
+    }
+    if (state.selectedBlockId) {
+      const found = findBlock(state.sections, state.selectedBlockId)
+      if (!found) return
+      const newBlock = cloneBlockWithNewId(found.block)
+      set({
+        ...pushUndo(state),
+        sections: insertBlockAfterInZone(
+          state.sections,
+          found.section.id,
+          found.zone.id,
+          found.block.id,
+          newBlock
+        ),
+        selectedBlockId: newBlock.id,
+        saveStatus: "unsaved",
+      })
+    } else if (state.selectedSectionId) {
+      const idx = state.sections.findIndex(s => s.id === state.selectedSectionId)
+      if (idx === -1) return
+      const newSection = deepCloneWithNewIds(state.sections[idx])
+      set({
+        ...pushUndo(state),
+        sections: insertSectionAt(state.sections, newSection, idx + 1),
+        selectedSectionId: newSection.id,
+        selectedBlockId: null,
+        activePanel: "properties",
+        activeTab: "content",
+        saveStatus: "unsaved",
+      })
+    }
+  },
+
+  // Multi-select
+  toggleBlockSelection(sectionId, blockId) {
+    const state = get()
+    // Enforce same-section restriction
+    const allInSameSection = state.selectedBlockIds.length === 0 ||
+      state.sections.find(s => s.id === sectionId)?.contentZones.some(
+        z => z.blocks.some(b => state.selectedBlockIds.includes(b.id))
+      )
+    if (!allInSameSection) return
+
+    const ids = state.selectedBlockIds.includes(blockId)
+      ? state.selectedBlockIds.filter(id => id !== blockId)
+      : [...state.selectedBlockIds, blockId]
+
+    set({
+      selectedBlockIds: ids,
+      multiSelectMode: ids.length > 1,
+      selectedSectionId: sectionId,
+      selectedBlockId: ids.length === 1 ? ids[0] : (ids.length === 0 ? null : state.selectedBlockId),
+    })
+  },
+
+  clearMultiSelect() {
+    set({ selectedBlockIds: [], multiSelectMode: false })
+  },
+
+  deleteMultiSelected() {
+    const state = get()
+    if (state.selectedBlockIds.length === 0) return
+    let sections = state.sections
+    for (const blockId of state.selectedBlockIds) {
+      sections = removeBlockById(sections, blockId)
+    }
+    set({
+      ...pushUndo(state),
+      sections,
+      selectedBlockIds: [],
+      selectedBlockId: null,
+      multiSelectMode: false,
+      activePanel: null,
+      saveStatus: "unsaved",
+    })
+  },
 }))

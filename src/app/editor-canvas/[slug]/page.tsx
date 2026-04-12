@@ -14,6 +14,7 @@ interface CanvasPageProps {
 export default function CanvasPage({ params }: CanvasPageProps) {
   const { slug } = use(params)
   const [sections, setSections] = useState<Section[]>([])
+  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([])
   const [editMode] = useState(true)
 
   useEffect(() => {
@@ -24,6 +25,8 @@ export default function CanvasPage({ params }: CanvasPageProps) {
     const unsubscribe = onParentMessage((message) => {
       if (message.type === "SYNC_STATE") {
         setSections(message.payload.sections)
+      } else if (message.type === "SYNC_MULTI_SELECT") {
+        setSelectedBlockIds(message.payload.selectedBlockIds)
       }
     })
 
@@ -43,7 +46,7 @@ export default function CanvasPage({ params }: CanvasPageProps) {
           ))
         )}
 
-        {editMode && <EditorRuntime sections={sections} />}
+        {editMode && <EditorRuntime sections={sections} selectedBlockIds={selectedBlockIds} />}
       </div>
     </InlineEditProvider>
   )

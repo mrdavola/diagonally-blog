@@ -1,5 +1,6 @@
 // src/lib/visual-editor/helpers.ts
 import type { Section, EditorBlock, ContentZone } from "./types"
+import { generateId } from "./defaults"
 
 /** Find a block by ID across all sections and zones */
 export function findBlock(sections: Section[], blockId: string): { section: Section; zone: ContentZone; block: EditorBlock } | null {
@@ -100,4 +101,47 @@ export function reorderSections(sections: Section[], fromIndex: number, toIndex:
   const [moved] = result.splice(fromIndex, 1)
   result.splice(toIndex, 0, moved)
   return result
+}
+
+/** Clone a block with a fresh ID */
+export function cloneBlockWithNewId(block: EditorBlock): EditorBlock {
+  return {
+    ...JSON.parse(JSON.stringify(block)),
+    id: generateId(),
+  }
+}
+
+/** Deep-clone a section, regenerating all IDs (section, zones, blocks) */
+export function deepCloneWithNewIds(section: Section): Section {
+  const cloned: Section = JSON.parse(JSON.stringify(section))
+  cloned.id = generateId()
+  cloned.contentZones = cloned.contentZones.map(zone => ({
+    ...zone,
+    id: generateId(),
+    blocks: zone.blocks.map(block => ({ ...block, id: generateId() })),
+  }))
+  return cloned
+}
+
+/** Insert a block into a zone after a specific block ID, or at the end if not found */
+export function insertBlockAfterInZone(
+  sections: Section[],
+  sectionId: string,
+  zoneId: string,
+  afterBlockId: string,
+  block: EditorBlock
+): Section[] {
+  return sections.map(section => {
+    if (section.id !== sectionId) return section
+    return {
+      ...section,
+      contentZones: section.contentZones.map(zone => {
+        if (zone.id !== zoneId) return zone
+        const idx = zone.blocks.findIndex(b => b.id === afterBlockId)
+        const blocks = [...zone.blocks]
+        blocks.splice(idx === -1 ? blocks.length : idx + 1, 0, block)
+        return { ...zone, blocks }
+      }),
+    }
+  })
 }

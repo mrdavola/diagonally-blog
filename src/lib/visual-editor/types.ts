@@ -224,11 +224,13 @@ export type ParentToCanvasMessage =
   | { type: "SET_VIEWPORT"; payload: { viewport: "desktop" | "tablet" | "mobile" } }
   | { type: "SYNC_STATE"; payload: { sections: Section[] } }
   | { type: "DESELECT" }
+  | { type: "SYNC_MULTI_SELECT"; payload: { selectedBlockIds: string[] } }
 
 export type CanvasToParentMessage =
   | { type: "ELEMENT_HOVERED"; payload: { id: string; kind: "section" | "block"; rect: DOMRect } }
   | { type: "ELEMENT_SELECTED"; payload: { id: string; kind: "section" | "block"; rect: DOMRect } }
   | { type: "ELEMENT_DESELECTED" }
+  | { type: "BLOCK_MULTI_SELECT"; payload: { blockId: string; sectionId: string } }
   | { type: "CONTENT_CHANGED"; payload: { sectionId: string; blockId: string; props: Record<string, unknown> } }
   | { type: "REQUEST_INSERT"; payload: { position: "before" | "after"; sectionId: string; insertType: "section" | "block" } }
   | { type: "CANVAS_READY" }
