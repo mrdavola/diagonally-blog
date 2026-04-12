@@ -33,9 +33,10 @@ const EMPTY_DOC: TiptapJSON = { type: "doc", content: [{ type: "paragraph" }] }
 interface TiptapEditorProps {
   content: TiptapJSON | null
   onChange: (content: TiptapJSON) => void
+  onWordCountChange?: (count: number) => void
 }
 
-export function TiptapEditor({ content, onChange }: TiptapEditorProps) {
+export function TiptapEditor({ content, onChange, onWordCountChange }: TiptapEditorProps) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const flushChange = useCallback(
@@ -85,9 +86,11 @@ export function TiptapEditor({ content, onChange }: TiptapEditorProps) {
     content: content ?? EMPTY_DOC,
     onUpdate({ editor: ed }) {
       scheduleChange(() => ed.getJSON() as TiptapJSON)
+      onWordCountChange?.(ed.storage.characterCount.words() ?? 0)
     },
     onBlur({ editor: ed }) {
       flushChange(() => ed.getJSON() as TiptapJSON)
+      onWordCountChange?.(ed.storage.characterCount.words() ?? 0)
     },
   })
 
