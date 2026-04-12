@@ -67,17 +67,17 @@ function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <div className="bg-space-mid/50 rounded-xl border border-white/10 overflow-hidden">
+    <div className="bg-admin-surface-raised/50 rounded-xl border border-admin-border-subtle overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-6 py-4 text-sm font-medium text-text-light/70 hover:text-text-light transition"
+        className="w-full flex items-center justify-between px-6 py-4 text-xs font-medium text-text-light/40 uppercase tracking-wider hover:text-text-light/60 transition"
       >
         <span>{title}</span>
         {open ? (
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-3.5 h-3.5" />
         ) : (
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-3.5 h-3.5" />
         )}
       </button>
       {open && <div className="px-6 pb-6">{children}</div>}
@@ -404,16 +404,16 @@ export default function PostEditorPage() {
 
   // ── Styles ───────────────────────────────────────────────────────────────────
   const inputClass =
-    "w-full bg-white/5 border border-white/10 text-text-light rounded-lg px-3 py-2 focus:outline-none focus:border-blue-primary/50 placeholder:text-text-light/30 text-sm"
-  const labelClass = "text-sm text-text-light/60 font-medium block mb-1"
+    "w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm focus:outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors placeholder:text-text-light/30"
+  const labelClass = "text-xs text-text-light/40 uppercase tracking-wider block mb-1.5"
 
   // ── Status badge ─────────────────────────────────────────────────────────────
   function StatusBadge() {
     const s = post.status ?? "draft"
     const cfg = {
-      draft: "bg-amber-500/20 text-amber-400",
-      scheduled: "bg-blue-500/20 text-blue-400",
-      published: "bg-emerald-500/20 text-emerald-400",
+      draft: "bg-amber-500/10 text-amber-400/80",
+      scheduled: "bg-blue-400/10 text-blue-400/80",
+      published: "bg-emerald-500/10 text-emerald-400/80",
     }[s]
     const label = { draft: "Draft", scheduled: "Scheduled", published: "Published" }[s]
     return (
@@ -426,12 +426,12 @@ export default function PostEditorPage() {
   // ── Autosave indicator ────────────────────────────────────────────────────────
   function AutosaveIndicator() {
     if (saving)
-      return <span className="text-xs text-text-light/40">Saving…</span>
+      return <span className="text-xs text-text-light/25 italic">Saving…</span>
     if (dirty)
-      return <span className="text-xs text-text-light/40">Unsaved changes</span>
+      return <span className="text-xs text-text-light/25 italic">Unsaved changes</span>
     if (lastSaved)
       return (
-        <span className="text-xs text-text-light/40">
+        <span className="text-xs text-text-light/25 italic">
           Saved at {formatTime(lastSaved)}
         </span>
       )
@@ -451,8 +451,8 @@ export default function PostEditorPage() {
   return (
     <div className="min-h-screen bg-space-deep">
       {/* ── Top Bar ─────────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-40 bg-space-deep/90 backdrop-blur border-b border-white/10">
-        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center gap-3">
+      <div className="sticky top-0 z-40 bg-space-deep/90 backdrop-blur border-b border-admin-border-subtle">
+        <div className="max-w-4xl mx-auto px-8 py-4 flex items-center gap-3">
           <button
             onClick={() => router.push("/admin/posts")}
             className="text-text-light/40 hover:text-text-light/70 transition p-1 rounded-lg hover:bg-white/5"
@@ -496,7 +496,7 @@ export default function PostEditorPage() {
               </button>
 
               {showPreviewPopover && previewUrl && (
-                <div className="absolute right-0 top-full mt-2 bg-space-mid border border-white/10 rounded-xl p-4 shadow-xl z-50 w-80">
+                <div className="absolute right-0 top-full mt-2 bg-admin-surface-overlay border border-admin-border rounded-xl p-4 shadow-xl z-50 w-80">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-text-light/70 font-medium">Draft preview link</p>
                     <button
@@ -541,7 +541,7 @@ export default function PostEditorPage() {
           <button
             onClick={() => handleSaveDraft(false)}
             disabled={saving}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-text-light/70 rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -562,7 +562,7 @@ export default function PostEditorPage() {
             </button>
 
             {showSchedule && (
-              <div className="absolute right-0 top-full mt-2 bg-space-mid border border-white/10 rounded-xl p-4 shadow-xl z-50 w-72">
+              <div className="absolute right-0 top-full mt-2 bg-admin-surface-overlay border border-admin-border rounded-xl p-4 shadow-xl z-50 w-72">
                 <p className="text-sm text-text-light/70 font-medium mb-3">
                   Schedule publish date
                 </p>
@@ -638,7 +638,7 @@ export default function PostEditorPage() {
           <button
             onClick={handlePublish}
             disabled={saving}
-            className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+            className="flex items-center gap-2 bg-blue-deep hover:bg-blue-deep/80 text-white rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -651,7 +651,7 @@ export default function PostEditorPage() {
       </div>
 
       {/* ── Main Content ─────────────────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-8 py-10 space-y-8">
         {loadError && (
           <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
             {loadError}
@@ -659,24 +659,24 @@ export default function PostEditorPage() {
         )}
 
         {/* Title & Subtitle */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <input
             type="text"
             value={post.title ?? ""}
             onChange={(e) => update({ title: e.target.value })}
             placeholder="Post title"
-            className="w-full bg-transparent text-text-light font-display text-3xl font-bold placeholder:text-text-light/20 focus:outline-none border-b border-white/10 pb-3 focus:border-blue-primary/50"
+            className="w-full bg-transparent border-none outline-none text-white font-display text-3xl md:text-4xl font-bold placeholder:text-text-light/20"
           />
           <input
             type="text"
             value={post.subtitle ?? ""}
             onChange={(e) => update({ subtitle: e.target.value })}
             placeholder="Add a subtitle..."
-            className="w-full bg-transparent text-text-light text-lg placeholder:text-text-light/20 focus:outline-none border-b border-white/10 pb-2 focus:border-blue-primary/50"
+            className="w-full bg-transparent border-none outline-none text-xl text-text-light/60 placeholder:text-text-light/20"
           />
           {/* Slug */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-text-light/40">slug:</span>
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-xs text-text-light/25 font-mono">slug:</span>
             <input
               type="text"
               value={post.slug ?? ""}
@@ -688,7 +688,7 @@ export default function PostEditorPage() {
                 setSlugManuallyEdited(true)
                 update({ slug: val })
               }}
-              className="font-mono text-xs bg-white/5 border border-white/10 text-text-light/60 rounded px-2 py-1 focus:outline-none focus:border-blue-primary/50 w-64"
+              className="font-mono text-xs bg-transparent border-none outline-none text-text-light/25 focus:text-text-light/50 transition-colors w-64"
             />
           </div>
         </div>
@@ -870,7 +870,7 @@ export default function PostEditorPage() {
 
       {/* ── Toast ────────────────────────────────────────────────────────────── */}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-space-mid border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-6 right-6 bg-admin-surface-overlay border border-admin-border rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
           {toast}
         </div>
       )}
