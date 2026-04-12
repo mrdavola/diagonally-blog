@@ -9,9 +9,13 @@ import { useAuth } from "@/components/admin/auth-provider"
 import { EditorTopBar } from "./shell/editor-top-bar"
 import { ViewportFrame } from "./shell/viewport-frame"
 import { PropertyPanel } from "./panels/property-panel"
+import { PropertySheet } from "./panels/property-sheet"
 import { SectionPanel } from "./panels/section-panel"
+import { SectionSheet } from "./panels/section-sheet"
 import { BlockInserter } from "./inserters/block-inserter"
+import { BlockInserterMobile } from "./inserters/block-inserter-mobile"
 import { SectionInserter } from "./inserters/section-inserter"
+import { SectionInserterMobile } from "./inserters/section-inserter-mobile"
 import { SectionListPanel } from "./panels/section-list-panel"
 import { GlobalStylesPanel } from "./panels/global-styles-panel"
 
@@ -26,6 +30,7 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [insertionIndex, setInsertionIndex] = useState<number>(0)
+  const [isMobile, setIsMobile] = useState(false)
 
   const init = useEditorStore((s) => s.init)
   const setSaveStatus = useEditorStore((s) => s.setSaveStatus)
@@ -37,6 +42,15 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   const selectedSectionId = useEditorStore((s) => s.selectedSectionId)
   const selectedBlockId = useEditorStore((s) => s.selectedBlockId)
   const sections = useEditorStore((s) => s.sections)
+
+  // ─── Responsive detection ────────────────────────────────────────────────
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
 
   // ─── Load page on mount ──────────────────────────────────────────────────
 
@@ -201,25 +215,40 @@ export function VisualEditor({ slug }: VisualEditorProps) {
       <div className="relative flex-1 overflow-hidden">
         <ViewportFrame slug={slug} />
 
-        {/* Property panel — block selected */}
+        {/* Property panel / sheet — block selected */}
         {activePanel === "properties" && selectedBlockId && (
-          <PropertyPanel onClose={handleClosePanel} />
+          isMobile
+            ? <PropertySheet open onClose={handleClosePanel} />
+            : <PropertyPanel onClose={handleClosePanel} />
         )}
 
-        {/* Section panel — section selected, no block */}
+        {/* Section panel / sheet — section selected, no block */}
         {activePanel === "properties" && selectedSectionId && !selectedBlockId && (
-          <SectionPanel onClose={handleClosePanel} />
+          isMobile
+            ? <SectionSheet open onClose={handleClosePanel} />
+            : <SectionPanel onClose={handleClosePanel} />
         )}
 
         {/* Block inserter */}
         {activePanel === "block-inserter" && selectedSectionId && firstZoneId && (
-          <div className="absolute right-0 top-0 z-40">
-            <BlockInserter
-              targetSectionId={selectedSectionId}
-              targetZoneId={firstZoneId}
-              onClose={handleClosePanel}
-            />
-          </div>
+          isMobile
+            ? (
+              <BlockInserterMobile
+                targetSectionId={selectedSectionId}
+                targetZoneId={firstZoneId}
+                open
+                onClose={handleClosePanel}
+              />
+            )
+            : (
+              <div className="absolute right-0 top-0 z-40">
+                <BlockInserter
+                  targetSectionId={selectedSectionId}
+                  targetZoneId={firstZoneId}
+                  onClose={handleClosePanel}
+                />
+              </div>
+            )
         )}
 
         {/* Section list panel */}
@@ -237,12 +266,22 @@ export function VisualEditor({ slug }: VisualEditorProps) {
 
         {/* Section inserter */}
         {activePanel === "section-inserter" && (
-          <div className="absolute right-0 top-0 z-40 h-full">
-            <SectionInserter
-              insertAtIndex={insertionIndex}
-              onClose={handleClosePanel}
-            />
-          </div>
+          isMobile
+            ? (
+              <SectionInserterMobile
+                insertAtIndex={insertionIndex}
+                open
+                onClose={handleClosePanel}
+              />
+            )
+            : (
+              <div className="absolute right-0 top-0 z-40 h-full">
+                <SectionInserter
+                  insertAtIndex={insertionIndex}
+                  onClose={handleClosePanel}
+                />
+              </div>
+            )
         )}
       </div>
     </div>

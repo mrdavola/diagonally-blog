@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { Section } from "@/lib/visual-editor/types"
 import { sendToParent } from "@/lib/visual-editor/message-bridge"
 import { useInlineEdit } from "./inline-edit-context"
+import { useTouchGestures } from "../hooks/use-touch-gestures"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,10 @@ function findEditorTarget(element: Element | null): OverlayTarget | null {
     el = el.parentElement
   }
   return null
+}
+
+function isTouchDevice(): boolean {
+  return typeof window !== "undefined" && "ontouchstart" in window
 }
 
 function collectInsertPoints(sections: Section[]): InsertPoint[] {
@@ -248,8 +253,12 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
   const [hovered, setHovered] = useState<OverlayTarget | null>(null)
   const [selected, setSelected] = useState<OverlayTarget | null>(null)
   const [insertPoints, setInsertPoints] = useState<InsertPoint[]>([])
+  const [longPressId, setLongPressId] = useState<string | null>(null)
+  // Two-step touch selection: first tap selects section, second tap selects block
+  const [touchSelectedSectionId, setTouchSelectedSectionId] = useState<string | null>(null)
   const rafRef = useRef<number | null>(null)
   const { editingBlockId, startEditing, stopEditing } = useInlineEdit()
+  const isTouch = isTouchDevice()
 
   // Recompute insert points whenever sections change (after render)
   useEffect(() => {
@@ -259,6 +268,88 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
     })
     return () => cancelAnimationFrame(id)
   }, [sections])
+
+  // ─── Touch gesture handlers ───────────────────────────────────────────────
+
+  const handleTouchTap = useCallback((target: { id: string; kind: "section" | "block"; rect: DOMRect }) => {
+    if (editingBlockId) return
+
+    if (target.kind === "section") {
+      // First tap: select section
+      setTouchSelectedSectionId(target.id)
+      setSelected(target)
+      sendToParent({
+        type: "ELEMENT_SELECTED",
+        payload: { id: target.id, kind: "section", rect: target.rect },
+      })
+    } else {
+      // Block tap: only select if its parent section is already touch-selected
+      // Otherwise select the section first
+      const blockEl = document.querySelector(`[data-block-id="${target.id}"]`)
+      let parentSectionId: string | null = null
+      let el = blockEl?.parentElement
+      while (el && el !== document.documentElement) {
+        const sid = el.getAttribute("data-section-id")
+        if (sid) { parentSectionId = sid; break }
+        el = el.parentElement
+      }
+
+      if (parentSectionId && touchSelectedSectionId === parentSectionId) {
+        // Second tap: select block
+        setSelected(target)
+        sendToParent({
+          type: "ELEMENT_SELECTED",
+          payload: { id: target.id, kind: "block", rect: target.rect },
+        })
+      } else {
+        // Select the section first
+        if (parentSectionId) {
+          const sectionEl = document.querySelector(`[data-section-id="${parentSectionId}"]`)
+          const sectionRect = sectionEl?.getBoundingClientRect() ?? target.rect
+          const sectionTarget = { id: parentSectionId, kind: "section" as const, rect: sectionRect }
+          setTouchSelectedSectionId(parentSectionId)
+          setSelected(sectionTarget)
+          sendToParent({
+            type: "ELEMENT_SELECTED",
+            payload: { id: parentSectionId, kind: "section", rect: sectionRect },
+          })
+        }
+      }
+    }
+  }, [editingBlockId, touchSelectedSectionId])
+
+  const handleTouchDoubleTap = useCallback((target: { blockId: string; sectionId: string }) => {
+    startEditing(target.blockId)
+    sendToParent({
+      type: "INLINE_EDIT_STARTED",
+      payload: { sectionId: target.sectionId, blockId: target.blockId },
+    })
+    setSelected(null)
+    setHovered(null)
+  }, [startEditing])
+
+  const handleTouchLongPress = useCallback((target: { id: string; kind: "section" | "block" }) => {
+    // Visual drag-mode feedback
+    setLongPressId(target.id)
+    setTimeout(() => setLongPressId(null), 800)
+  }, [])
+
+  // Bind touch gestures to window
+  const { bind: bindTouchGestures } = useTouchGestures({
+    onTap: handleTouchTap,
+    onDoubleTap: handleTouchDoubleTap,
+    onLongPress: handleTouchLongPress,
+    onTwoFingerTap: () => {
+      // Two-finger tap → undo (dispatched to parent)
+      window.parent?.postMessage({ type: "EDITOR_UNDO" }, window.location.origin)
+    },
+    onThreeFingerTap: () => {
+      // Three-finger tap → redo (dispatched to parent)
+      window.parent?.postMessage({ type: "EDITOR_REDO" }, window.location.origin)
+    },
+  })
+
+  // ─── Mouse handlers (desktop) ─────────────────────────────────────────────
 
   // Mouse move — throttled via rAF (suppress when inline editing)
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -318,6 +409,18 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
   }, [editingBlockId, stopEditing])
 
   useEffect(() => {
+    if (isTouch) {
+      // Touch devices: bind touch gestures, skip mouse events
+      const unbind = bindTouchGestures(window)
+      window.addEventListener("keydown", handleKeyDown)
+      return () => {
+        unbind()
+        window.removeEventListener("keydown", handleKeyDown)
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+      }
+    }
+
+    // Desktop: use mouse events
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("click", handleClick)
     window.addEventListener("dblclick", handleDblClick)
@@ -329,7 +432,10 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
       window.removeEventListener("keydown", handleKeyDown)
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }
-  }, [handleMouseMove, handleClick, handleDblClick, handleKeyDown])
+  }, [isTouch, bindTouchGestures, handleMouseMove, handleClick, handleDblClick, handleKeyDown])
+
+  // Suppress unused-var warning — longPressId used for visual feedback below
+  void longPressId
 
   const isHoverSuppressed = hovered && selected && hovered.id === selected.id
   const isInlineEditing = editingBlockId !== null
@@ -347,9 +453,10 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
       {!isInlineEditing && selected && (
         <OverlayBox
           rect={selected.rect}
-          color="#3b82f6"
+          color={longPressId === selected.id ? "#f97316" : "#3b82f6"}
           showHandles={selected.kind === "block"}
           showSectionLabel={selected.kind === "section"}
+          label={longPressId === selected.id ? "Drag mode" : undefined}
         />
       )}
 
