@@ -11,6 +11,7 @@ import { AdvancedTab } from "./advanced-tab"
 
 interface PropertyPanelProps {
   onClose: () => void
+  narrow?: boolean
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -53,7 +54,7 @@ const TABS: { id: PropertyTab; label: string }[] = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function PropertyPanel({ onClose }: PropertyPanelProps) {
+export function PropertyPanel({ onClose, narrow }: PropertyPanelProps) {
   const selectedSectionId = useEditorStore((s) => s.selectedSectionId)
   const selectedBlockId = useEditorStore((s) => s.selectedBlockId)
   const sections = useEditorStore((s) => s.sections)
@@ -86,7 +87,7 @@ export function PropertyPanel({ onClose }: PropertyPanelProps) {
   }
 
   return (
-    <div className="fixed right-0 top-12 z-40 flex w-80 max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-bl-xl rounded-tl-xl border border-gray-200 bg-white shadow-2xl">
+    <div className={`fixed right-0 top-12 z-40 flex ${narrow ? "w-72" : "w-80"} max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-bl-xl rounded-tl-xl border border-gray-200 bg-white shadow-2xl`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
         <span className="text-sm font-semibold text-gray-900">{typeLabel}</span>

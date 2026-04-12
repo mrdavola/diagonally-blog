@@ -34,11 +34,12 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 interface GlobalStylesPanelProps {
   onClose: () => void
+  narrow?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function GlobalStylesPanel({ onClose }: GlobalStylesPanelProps) {
+export function GlobalStylesPanel({ onClose, narrow }: GlobalStylesPanelProps) {
   const { user } = useAuth()
   const [styles, setStyles] = useState<SiteStyles>(defaultSiteStyles())
   const [saveIndicator, setSaveIndicator] = useState<"idle" | "saving" | "saved">("idle")
@@ -125,7 +126,7 @@ export function GlobalStylesPanel({ onClose }: GlobalStylesPanelProps) {
   ]
 
   return (
-    <div className="fixed right-0 top-12 z-40 flex w-80 max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-bl-xl rounded-tl-xl border border-gray-200 bg-white shadow-2xl">
+    <div className={`fixed right-0 top-12 z-40 flex ${narrow ? "w-72" : "w-80"} max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-bl-xl rounded-tl-xl border border-gray-200 bg-white shadow-2xl`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
         <span className="text-sm font-semibold text-gray-900">Site Styles</span>

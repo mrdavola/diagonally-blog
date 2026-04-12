@@ -30,7 +30,7 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [insertionIndex, setInsertionIndex] = useState<number>(0)
-  const [isMobile, setIsMobile] = useState(false)
+  const [deviceType, setDeviceType] = useState<"mobile" | "tablet" | "desktop">("desktop")
 
   const init = useEditorStore((s) => s.init)
   const setSaveStatus = useEditorStore((s) => s.setSaveStatus)
@@ -46,11 +46,16 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   // ─── Responsive detection ────────────────────────────────────────────────
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
+    const check = () => {
+      const w = window.innerWidth
+      setDeviceType(w < 768 ? "mobile" : w < 1024 ? "tablet" : "desktop")
+    }
     check()
     window.addEventListener("resize", check)
     return () => window.removeEventListener("resize", check)
   }, [])
+
+  const isMobile = deviceType === "mobile"
 
   // ─── Load page on mount ──────────────────────────────────────────────────
 
@@ -219,14 +224,14 @@ export function VisualEditor({ slug }: VisualEditorProps) {
         {activePanel === "properties" && selectedBlockId && (
           isMobile
             ? <PropertySheet open onClose={handleClosePanel} />
-            : <PropertyPanel onClose={handleClosePanel} />
+            : <PropertyPanel onClose={handleClosePanel} narrow={deviceType === "tablet"} />
         )}
 
         {/* Section panel / sheet — section selected, no block */}
         {activePanel === "properties" && selectedSectionId && !selectedBlockId && (
           isMobile
             ? <SectionSheet open onClose={handleClosePanel} />
-            : <SectionPanel onClose={handleClosePanel} />
+            : <SectionPanel onClose={handleClosePanel} narrow={deviceType === "tablet"} />
         )}
 
         {/* Block inserter */}
@@ -261,7 +266,7 @@ export function VisualEditor({ slug }: VisualEditorProps) {
 
         {/* Global styles panel */}
         {activePanel === "global-styles" && (
-          <GlobalStylesPanel onClose={handleClosePanel} />
+          <GlobalStylesPanel onClose={handleClosePanel} narrow={deviceType === "tablet"} />
         )}
 
         {/* Section inserter */}

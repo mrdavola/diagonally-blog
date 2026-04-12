@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { AuthProvider, useAuth } from "@/components/admin/auth-provider"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
+import { MobileNav } from "@/components/visual-editor/shell/mobile-nav"
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, role, loading, signOut } = useAuth()
@@ -71,10 +72,11 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6 bg-space-mid">
+        <main className="flex-1 overflow-y-auto p-6 pb-20 md:pb-6 bg-space-mid">
           {children}
         </main>
       </div>
+      <MobileNav />
     </div>
   )
 }

@@ -27,6 +27,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 interface SectionPanelProps {
   onClose: () => void
+  narrow?: boolean
 }
 
 type SectionTab = "layout" | "style" | "advanced"
@@ -412,7 +413,7 @@ function AdvancedTab({ section, onChange }: AdvancedTabProps) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function SectionPanel({ onClose }: SectionPanelProps) {
+export function SectionPanel({ onClose, narrow }: SectionPanelProps) {
   const selectedSectionId = useEditorStore((s) => s.selectedSectionId)
   const sections = useEditorStore((s) => s.sections)
   const updateSection = useEditorStore((s) => s.updateSection)
@@ -430,7 +431,7 @@ export function SectionPanel({ onClose }: SectionPanelProps) {
   }
 
   return (
-    <div className="fixed right-0 top-12 z-40 flex w-80 max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-bl-xl rounded-tl-xl border border-gray-200 bg-white shadow-2xl">
+    <div className={`fixed right-0 top-12 z-40 flex ${narrow ? "w-72" : "w-80"} max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-bl-xl rounded-tl-xl border border-gray-200 bg-white shadow-2xl`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
         <span className="text-sm font-semibold text-gray-900">Section</span>
