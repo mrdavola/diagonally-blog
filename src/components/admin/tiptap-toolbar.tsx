@@ -15,7 +15,9 @@ import {
   List,
   ListOrdered,
   ListChecks,
-  Image,
+  ImageIcon,
+  Video,
+  Globe,
   Table,
   Minus,
   AlignLeft,
@@ -25,6 +27,7 @@ import {
 
 interface TiptapToolbarProps {
   editor: Editor | null
+  onOpenMedia: (tab: "image" | "video" | "embed") => void
 }
 
 interface ToolbarButtonProps {
@@ -55,18 +58,10 @@ function Separator() {
   return <div className="w-px h-5 bg-white/10 mx-1" />
 }
 
-export function TiptapToolbar({ editor }: TiptapToolbarProps) {
+export function TiptapToolbar({ editor, onOpenMedia }: TiptapToolbarProps) {
   if (!editor) return null
 
-  // Capture in non-nullable local so inner functions can use it safely
   const ed = editor
-
-  function handleImage() {
-    const url = window.prompt("Image URL:")
-    if (url) {
-      ed.chain().focus().setImage({ src: url }).run()
-    }
-  }
 
   function handleTable() {
     ed.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
@@ -164,12 +159,24 @@ export function TiptapToolbar({ editor }: TiptapToolbarProps) {
 
       <Separator />
 
-      {/* Group 4 — Insert */}
+      {/* Group 4 — Insert (media) */}
       <ToolbarButton
-        onClick={handleImage}
+        onClick={() => onOpenMedia("image")}
         isActive={false}
         title="Insert Image"
-        icon={Image}
+        icon={ImageIcon}
+      />
+      <ToolbarButton
+        onClick={() => onOpenMedia("video")}
+        isActive={false}
+        title="Insert Video"
+        icon={Video}
+      />
+      <ToolbarButton
+        onClick={() => onOpenMedia("embed")}
+        isActive={false}
+        title="Insert Embed"
+        icon={Globe}
       />
       <ToolbarButton
         onClick={handleTable}

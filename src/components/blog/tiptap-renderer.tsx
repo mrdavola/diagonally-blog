@@ -230,6 +230,71 @@ function renderNode(node: TiptapNode, index: number): React.ReactNode {
       )
     }
 
+    case "video": {
+      const src = (node.attrs?.src as string) ?? ""
+      const provider = (node.attrs?.provider as string) ?? ""
+      const videoId = (node.attrs?.videoId as string) ?? ""
+
+      if (provider === "youtube" && videoId) {
+        return (
+          <div key={index} className="my-6 aspect-video">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}`}
+              className="w-full h-full rounded-xl"
+              allowFullScreen
+              loading="lazy"
+              title="YouTube video"
+            />
+          </div>
+        )
+      }
+      if (provider === "vimeo" && videoId) {
+        return (
+          <div key={index} className="my-6 aspect-video">
+            <iframe
+              src={`https://player.vimeo.com/video/${videoId}`}
+              className="w-full h-full rounded-xl"
+              allowFullScreen
+              loading="lazy"
+              title="Vimeo video"
+            />
+          </div>
+        )
+      }
+      return (
+        <div key={index} className="my-6">
+          <video src={src} controls className="w-full rounded-xl" />
+        </div>
+      )
+    }
+
+    case "embed": {
+      const url = (node.attrs?.url as string) ?? ""
+
+      if (/twitter\.com|x\.com/i.test(url)) {
+        return (
+          <div key={index} className="my-6 flex justify-center">
+            <blockquote className="twitter-tweet" data-theme="light">
+              <a href={url}>{url}</a>
+            </blockquote>
+          </div>
+        )
+      }
+
+      return (
+        <div key={index} className="my-6">
+          <iframe
+            src={url}
+            className="w-full rounded-xl border border-text-dark/10"
+            style={{ minHeight: "400px" }}
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin"
+            title="Embedded content"
+          />
+        </div>
+      )
+    }
+
     case "hardBreak":
       return <br key={index} />
 

@@ -11,7 +11,9 @@ import {
   ListChecks,
   Quote,
   Braces,
-  Image as ImageIcon,
+  ImageIcon,
+  Video as VideoIcon,
+  Globe,
   Table as TableIcon,
   Minus,
 } from "lucide-react"
@@ -63,9 +65,22 @@ const SLASH_ITEMS: SlashItem[] = [
   {
     title: "Image",
     icon: ImageIcon,
-    command: (editor) => {
-      const url = window.prompt("Image URL:")
-      if (url) editor.chain().focus().setImage({ src: url }).run()
+    command: () => {
+      window.dispatchEvent(new CustomEvent("tiptap:media", { detail: { tab: "image" } }))
+    },
+  },
+  {
+    title: "Video",
+    icon: VideoIcon,
+    command: () => {
+      window.dispatchEvent(new CustomEvent("tiptap:media", { detail: { tab: "video" } }))
+    },
+  },
+  {
+    title: "Embed",
+    icon: Globe,
+    command: () => {
+      window.dispatchEvent(new CustomEvent("tiptap:media", { detail: { tab: "embed" } }))
     },
   },
   {

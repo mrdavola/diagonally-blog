@@ -66,3 +66,16 @@
 .tiptap a:hover { color: #93bbfc; }
 
 .tiptap mark { background-color: rgba(245, 158, 11, 0.3); border-radius: 0.125rem; padding: 0.0625rem 0.125rem; }
+
+.tiptap-video-wrapper {
+  margin: 1rem 0;
+}
+
+.tiptap-embed-wrapper {
+  margin: 1rem 0;
+}
+
+.tiptap-video-wrapper iframe,
+.tiptap-embed-wrapper iframe {
+  border-radius: 0.75rem;
+}
