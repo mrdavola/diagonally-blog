@@ -1,7 +1,7 @@
 "use client"
 
 import { use } from "react"
-import { PageEditor } from "@/components/admin/page-editor"
+import { VisualEditor } from "@/components/visual-editor/visual-editor"
 
 interface PageEditorRouteProps {
   params: Promise<{ slug: string }>
@@ -10,8 +10,8 @@ interface PageEditorRouteProps {
 export default function PageEditorRoute({ params }: PageEditorRouteProps) {
   const { slug } = use(params)
   return (
-    <div className="h-full -m-6 flex flex-col">
-      <PageEditor slug={slug} />
+    <div className="-m-6 h-[calc(100vh)]">
+      <VisualEditor slug={slug} />
     </div>
   )
 }
