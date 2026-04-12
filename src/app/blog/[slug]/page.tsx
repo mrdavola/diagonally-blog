@@ -7,15 +7,19 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const title = slug
+
+  // Basic metadata — the client component handles the actual post fetch.
+  // For richer SSR metadata, a firebase-admin integration would be needed.
+  const titleFallback = slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
+
   return {
-    title: `${title} — Diagonally Blog`,
+    title: `${titleFallback} — Diagonally Blog`,
     description: "Read this post on the Diagonally blog.",
     openGraph: {
-      title: `${title} — Diagonally Blog`,
+      title: `${titleFallback} — Diagonally Blog`,
       description: "Read this post on the Diagonally blog.",
       url: `https://diagonally.org/blog/${slug}`,
       siteName: "Diagonally",
@@ -23,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} — Diagonally Blog`,
+      title: `${titleFallback} — Diagonally Blog`,
       description: "Read this post on the Diagonally blog.",
     },
   }
