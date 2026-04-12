@@ -47,10 +47,10 @@ function ToolbarButton({ onClick, isActive, title, icon: Icon }: ToolbarButtonPr
       type="button"
       onClick={onClick}
       title={title}
-      className={`p-1.5 rounded hover:bg-white/10 transition-colors ${
+      className={`p-1.5 rounded-md hover:bg-white/5 hover:text-text-light/80 transition-colors ${
         isActive
-          ? "bg-white/15 text-blue-primary"
-          : "text-text-light/60"
+          ? "bg-white/8 text-white"
+          : "text-text-light/50"
       }`}
     >
       <Icon className="w-4 h-4" />
@@ -59,7 +59,7 @@ function ToolbarButton({ onClick, isActive, title, icon: Icon }: ToolbarButtonPr
 }
 
 function Separator() {
-  return <div className="w-px h-5 bg-white/10 mx-1" />
+  return <div className="w-px h-6 bg-admin-border-subtle mx-1" />
 }
 
 const TEXT_COLORS = [
@@ -107,9 +107,9 @@ function ColorPicker({ colors, activeColor, onSelect, onClose }: ColorPickerProp
   return (
     <div
       ref={ref}
-      className="absolute top-full left-0 mt-1 z-50 bg-space-deep border border-white/15 rounded-lg p-2 shadow-xl"
+      className="absolute top-full left-0 mt-1 z-50 bg-admin-surface-overlay border border-admin-border rounded-xl p-2.5 shadow-xl"
     >
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-4 gap-2">
         {colors.map((c) => (
           <button
             key={c.label}
@@ -119,11 +119,11 @@ function ColorPicker({ colors, activeColor, onSelect, onClose }: ColorPickerProp
               onSelect(c.value)
               onClose()
             }}
-            className={`w-6 h-6 rounded-full cursor-pointer border transition-transform hover:scale-110 flex items-center justify-center ${
+            className={`w-7 h-7 rounded-full cursor-pointer border transition-transform hover:scale-110 flex items-center justify-center ${
               c.value === null
-                ? "border-white/30 bg-white/10"
-                : "border-white/20"
-            } ${activeColor === c.value ? "ring-2 ring-white/60 ring-offset-1 ring-offset-space-deep" : ""}`}
+                ? "border-white/20 bg-white/8"
+                : "border-white/15"
+            } ${activeColor === c.value ? "ring-2 ring-white/50 ring-offset-1 ring-offset-admin-surface-overlay" : ""}`}
             style={c.value ? { backgroundColor: c.value } : undefined}
           >
             {c.value === null && (
@@ -178,8 +178,8 @@ function ColorButton({ editor, type }: ColorButtonProps) {
         type="button"
         title={title}
         onClick={() => setOpen((v) => !v)}
-        className={`p-1.5 rounded hover:bg-white/10 transition-colors flex flex-col items-center gap-0.5 ${
-          open ? "bg-white/15 text-blue-primary" : "text-text-light/60"
+        className={`p-1.5 rounded-md hover:bg-white/5 transition-colors flex flex-col items-center gap-0.5 ${
+          open ? "bg-white/8 text-white" : "text-text-light/50"
         }`}
       >
         <Icon className="w-4 h-4" />
@@ -211,7 +211,7 @@ export function TiptapToolbar({ editor, onOpenMedia }: TiptapToolbarProps) {
   }
 
   return (
-    <div className="flex items-center flex-wrap gap-0.5 px-3 py-2 border-b border-white/10 bg-space-deep/40">
+    <div className="sticky top-0 z-10 flex items-center flex-wrap gap-0.5 px-4 py-2.5 border-b border-admin-border-subtle bg-admin-surface/60 backdrop-blur-sm">
       {/* Group 1 — Text formatting */}
       <ToolbarButton
         onClick={() => ed.chain().focus().toggleBold().run()}
