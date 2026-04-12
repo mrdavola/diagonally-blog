@@ -13,6 +13,7 @@ import { SectionPanel } from "./panels/section-panel"
 import { BlockInserter } from "./inserters/block-inserter"
 import { SectionInserter } from "./inserters/section-inserter"
 import { SectionListPanel } from "./panels/section-list-panel"
+import { GlobalStylesPanel } from "./panels/global-styles-panel"
 
 interface VisualEditorProps {
   slug: string
@@ -227,6 +228,11 @@ export function VisualEditor({ slug }: VisualEditorProps) {
             onClose={handleClosePanel}
             onAddSection={() => handleOpenSectionInserter(sections.length)}
           />
+        )}
+
+        {/* Global styles panel */}
+        {activePanel === "global-styles" && (
+          <GlobalStylesPanel onClose={handleClosePanel} />
         )}
 
         {/* Section inserter */}

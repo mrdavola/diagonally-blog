@@ -1,6 +1,9 @@
 "use client"
 
+import { useState } from "react"
+import { ImageIcon } from "lucide-react"
 import type { EditorBlock } from "@/lib/visual-editor/types"
+import { AssetLibrary } from "./asset-library"
 
 // ─── Shared field components ──────────────────────────────────────────────────
 
@@ -114,17 +117,43 @@ interface ContentTabProps {
 
 function ImageContent({ block, onUpdateProps }: ContentTabProps) {
   const p = block.props as Record<string, string>
+  const [assetLibraryOpen, setAssetLibraryOpen] = useState(false)
+
   return (
     <>
-      <Field label="Image URL">
-        <TextInput value={p.src ?? ""} onChange={(v) => onUpdateProps({ src: v })} placeholder="https://..." />
-      </Field>
+      <div className="mb-3">
+        <label className={labelCls}>Image URL</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            className={`${inputCls} flex-1`}
+            value={p.src ?? ""}
+            placeholder="https://..."
+            onChange={(e) => onUpdateProps({ src: e.target.value })}
+          />
+          <button
+            type="button"
+            onClick={() => setAssetLibraryOpen(true)}
+            className="flex shrink-0 items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs font-medium text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+            title="Browse Assets"
+          >
+            <ImageIcon size={13} />
+            Browse
+          </button>
+        </div>
+      </div>
       <Field label="Alt text">
         <TextInput value={p.alt ?? ""} onChange={(v) => onUpdateProps({ alt: v })} placeholder="Describe the image" />
       </Field>
       <Field label="Caption">
         <TextInput value={p.caption ?? ""} onChange={(v) => onUpdateProps({ caption: v })} placeholder="Optional caption" />
       </Field>
+
+      <AssetLibrary
+        open={assetLibraryOpen}
+        onClose={() => setAssetLibraryOpen(false)}
+        onSelect={(url, alt) => onUpdateProps({ src: url, ...(alt ? { alt } : {}) })}
+      />
     </>
   )
 }
