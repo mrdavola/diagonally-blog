@@ -124,15 +124,15 @@ function ImageTab({
               onDragLeave={onDragLeave}
               onDrop={onDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+              className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors bg-admin-surface/50 ${
                 dragging
-                  ? "border-blue-400/60 bg-blue-400/5"
-                  : "border-white/20 hover:border-blue-400/40"
+                  ? "border-blue-primary/40 bg-blue-primary/5"
+                  : "border-admin-border hover:border-blue-primary/30"
               }`}
             >
-              <UploadCloud className="w-10 h-10 mx-auto mb-3 text-text-light/40" />
-              <p className="text-text-light/80 font-medium mb-1">Drop image here or click to upload</p>
-              <p className="text-text-light/40 text-sm">Supports JPG, PNG, GIF, WebP &mdash; Max 10MB</p>
+              <UploadCloud className="w-10 h-10 mx-auto mb-3 text-text-light/20" />
+              <p className="text-text-light/60 font-medium mb-1 text-sm">Drop image here or click to upload</p>
+              <p className="text-text-light/30 text-xs">Supports JPG, PNG, GIF, WebP &mdash; Max 10MB</p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -161,7 +161,7 @@ function ImageTab({
                 <img
                   src={preview}
                   alt="Preview"
-                  className="w-full max-h-48 object-cover rounded-lg"
+                  className="w-full max-h-48 object-cover rounded-xl"
                 />
                 <button
                   type="button"
@@ -178,7 +178,7 @@ function ImageTab({
                   value={alt}
                   onChange={(e) => setAlt(e.target.value)}
                   placeholder="Describe the image for accessibility"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+                  className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
                 />
               </div>
               <div>
@@ -188,13 +188,13 @@ function ImageTab({
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   placeholder="Optional caption shown below the image"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+                  className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleInsertUpload}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-2 font-medium text-sm transition-colors"
+                className="w-full bg-blue-deep hover:bg-blue-deep/80 text-white rounded-lg px-5 py-2.5 font-medium text-sm transition-colors"
               >
                 Insert Image
               </button>
@@ -212,7 +212,7 @@ function ImageTab({
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               placeholder="https://example.com/image.jpg"
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+              className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
             />
           </div>
           {urlInput && (
@@ -231,7 +231,7 @@ function ImageTab({
                   value={alt}
                   onChange={(e) => setAlt(e.target.value)}
                   placeholder="Describe the image for accessibility"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+                  className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
                 />
               </div>
               <div>
@@ -241,7 +241,7 @@ function ImageTab({
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   placeholder="Optional caption"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+                  className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
                 />
               </div>
             </>
@@ -250,7 +250,7 @@ function ImageTab({
             type="button"
             onClick={handleInsertUrl}
             disabled={!urlInput.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-medium text-sm transition-colors"
+            className="w-full bg-blue-deep hover:bg-blue-deep/80 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-5 py-2.5 font-medium text-sm transition-colors"
           >
             Insert Image
           </button>
@@ -280,7 +280,7 @@ function VideoTab({ onInsert }: { onInsert: (url: string) => void }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+          className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
         />
         <p className="mt-1.5 text-text-light/40 text-xs">
           Supports YouTube, Vimeo, or direct video links (.mp4, .webm)
@@ -300,7 +300,7 @@ function VideoTab({ onInsert }: { onInsert: (url: string) => void }) {
       )}
 
       {parsed && parsed.provider !== "unknown" && !ytThumb && (
-        <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-sm text-text-light/60">
+        <div className="rounded-xl bg-admin-surface/50 border border-admin-border-subtle p-4 text-sm text-text-light/60">
           Provider detected: <span className="text-text-light capitalize">{parsed.provider}</span>
         </div>
       )}
@@ -309,7 +309,7 @@ function VideoTab({ onInsert }: { onInsert: (url: string) => void }) {
         type="button"
         onClick={() => url.trim() && onInsert(url.trim())}
         disabled={!url.trim()}
-        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-medium text-sm transition-colors"
+        className="w-full bg-blue-deep hover:bg-blue-deep/80 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-5 py-2.5 font-medium text-sm transition-colors"
       >
         Insert Video
       </button>
@@ -331,7 +331,7 @@ function EmbedTab({ onInsert }: { onInsert: (url: string) => void }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://twitter.com/... or https://codepen.io/..."
-          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-400/40"
+          className="w-full bg-admin-surface border border-admin-border rounded-lg px-3 py-2.5 text-text-light text-sm placeholder:text-text-light/30 outline-none focus:border-blue-primary/30 focus:ring-1 focus:ring-blue-primary/10 transition-colors"
         />
         <p className="mt-1.5 text-text-light/40 text-xs">
           Supports Twitter/X, Instagram, CodePen, and any webpage
@@ -339,7 +339,7 @@ function EmbedTab({ onInsert }: { onInsert: (url: string) => void }) {
       </div>
 
       {url.trim() && (
-        <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+        <div className="rounded-xl bg-admin-surface/50 border border-admin-border-subtle p-3">
           <p className="text-xs text-text-light/40 mb-1">URL preview</p>
           <p className="text-sm text-blue-400 break-all">{url.trim()}</p>
         </div>
@@ -349,7 +349,7 @@ function EmbedTab({ onInsert }: { onInsert: (url: string) => void }) {
         type="button"
         onClick={() => url.trim() && onInsert(url.trim())}
         disabled={!url.trim()}
-        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 font-medium text-sm transition-colors"
+        className="w-full bg-blue-deep hover:bg-blue-deep/80 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg px-5 py-2.5 font-medium text-sm transition-colors"
       >
         Insert Embed
       </button>
@@ -376,30 +376,30 @@ export function MediaDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-space-deep border border-white/10 text-text-light max-w-lg">
+      <DialogContent className="bg-admin-surface-raised border border-admin-border text-text-light max-w-lg [&>button]:text-text-light/40">
         <DialogHeader>
           <DialogTitle className="text-text-light text-base font-semibold">Insert Media</DialogTitle>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-          <TabsList className="bg-white/5 border border-white/10 w-full">
+          <TabsList className="bg-admin-surface/60 border border-admin-border-subtle w-full">
             <TabsTrigger
               value="image"
-              className="flex-1 data-[state=active]:bg-white/10 data-[state=active]:text-white text-text-light/60 gap-1.5"
+              className="flex-1 data-[state=active]:bg-white/8 data-[state=active]:text-white text-text-light/40 text-xs uppercase tracking-wider gap-1.5"
             >
               <ImageIcon className="w-3.5 h-3.5" />
               Image
             </TabsTrigger>
             <TabsTrigger
               value="video"
-              className="flex-1 data-[state=active]:bg-white/10 data-[state=active]:text-white text-text-light/60 gap-1.5"
+              className="flex-1 data-[state=active]:bg-white/8 data-[state=active]:text-white text-text-light/40 text-xs uppercase tracking-wider gap-1.5"
             >
               <Video className="w-3.5 h-3.5" />
               Video
             </TabsTrigger>
             <TabsTrigger
               value="embed"
-              className="flex-1 data-[state=active]:bg-white/10 data-[state=active]:text-white text-text-light/60 gap-1.5"
+              className="flex-1 data-[state=active]:bg-white/8 data-[state=active]:text-white text-text-light/40 text-xs uppercase tracking-wider gap-1.5"
             >
               <Globe className="w-3.5 h-3.5" />
               Embed
