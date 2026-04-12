@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, PenSquare, LayoutTemplate } from "lucide-react"
-import { listPosts, savePost } from "@/lib/posts"
+import { Plus, PenSquare, LayoutTemplate, Trash2 } from "lucide-react"
+import { listPosts, savePost, deletePost } from "@/lib/posts"
 import type { PostDocument } from "@/lib/blocks/types"
 
 const CATEGORIES: Record<string, string> = {
@@ -57,6 +57,11 @@ export default function PostsListPage() {
   const [newTitle, setNewTitle] = useState("")
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<PostDocument | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     listPosts()
@@ -64,6 +69,11 @@ export default function PostsListPage() {
       .catch(() => setPosts([]))
       .finally(() => setLoading(false))
   }, [])
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   async function handleCreatePost() {
     if (!newTitle.trim()) {
@@ -91,6 +101,22 @@ export default function PostsListPage() {
       console.error(err)
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function handleDeletePost() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await deletePost(deleteTarget.slug)
+      setPosts((prev) => prev.filter((p) => p.slug !== deleteTarget.slug))
+      showToast(`"${deleteTarget.title || deleteTarget.slug}" deleted.`)
+      setDeleteTarget(null)
+    } catch (err) {
+      console.error(err)
+      showToast("Delete failed. Please try again.")
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -133,81 +159,94 @@ export default function PostsListPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {posts.map((post) => (
-            <button
-              key={post.slug}
-              onClick={() => router.push(`/admin/posts/${post.slug}`)}
-              className="bg-space-deep/50 rounded-2xl p-5 border border-white/10 hover:border-white/20 text-left transition hover:bg-space-deep/70 group"
-            >
-              {/* Top row: status + category */}
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <StatusBadge status={post.status} />
-                {post.category && (
-                  <span className="text-xs text-text-light/40 bg-white/5 px-2 py-0.5 rounded-full shrink-0">
-                    {CATEGORIES[post.category] ?? post.category}
-                  </span>
-                )}
-              </div>
-
-              {/* Title */}
-              <p className="text-white font-medium mb-0.5 group-hover:text-blue-300 transition line-clamp-2">
-                {post.title || <span className="italic text-text-light/40">Untitled</span>}
-              </p>
-
-              {/* Subtitle */}
-              {post.subtitle && (
-                <p className="text-text-light/50 text-sm mb-1 line-clamp-1">{post.subtitle}</p>
-              )}
-
-              {/* Slug */}
-              <p className="text-text-light/40 text-xs font-mono mb-2">/{post.slug}</p>
-
-              {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {post.tags.slice(0, 4).map((tag) => (
-                    <span
-                      key={tag}
-                      className="bg-white/5 text-text-light/50 text-xs px-2 py-0.5 rounded-full"
-                    >
-                      {tag}
+            <div key={post.slug} className="relative group">
+              <button
+                onClick={() => router.push(`/admin/posts/${post.slug}`)}
+                className="w-full bg-space-deep/50 rounded-2xl p-5 border border-white/10 hover:border-white/20 text-left transition hover:bg-space-deep/70"
+              >
+                {/* Top row: status + category */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <StatusBadge status={post.status} />
+                  {post.category && (
+                    <span className="text-xs text-text-light/40 bg-white/5 px-2 py-0.5 rounded-full shrink-0">
+                      {CATEGORIES[post.category] ?? post.category}
                     </span>
-                  ))}
-                  {post.tags.length > 4 && (
-                    <span className="text-text-light/30 text-xs py-0.5">+{post.tags.length - 4}</span>
                   )}
                 </div>
-              )}
 
-              {/* Bottom meta row */}
-              <div className="flex items-center gap-2 flex-wrap mt-1">
-                {/* Author */}
-                {post.authorIds && post.authorIds.length > 0 && (
-                  <span className="text-text-light/40 text-xs font-mono">
-                    {post.authorIds[0]}
-                  </span>
+                {/* Title */}
+                <p className="text-white font-medium mb-0.5 group-hover:text-blue-300 transition line-clamp-2">
+                  {post.title || <span className="italic text-text-light/40">Untitled</span>}
+                </p>
+
+                {/* Subtitle */}
+                {post.subtitle && (
+                  <p className="text-text-light/50 text-sm mb-1 line-clamp-1">{post.subtitle}</p>
                 )}
 
-                {/* Word count + read time */}
-                {(post.wordCount > 0 || post.readTimeMinutes > 0) && (
-                  <span className="text-text-light/30 text-xs">
-                    {post.wordCount > 0 && post.readTimeMinutes > 0
-                      ? `${post.wordCount} words · ${post.readTimeMinutes} min read`
-                      : post.wordCount > 0
-                      ? `${post.wordCount} words`
-                      : `${post.readTimeMinutes} min read`}
-                  </span>
+                {/* Slug */}
+                <p className="text-text-light/40 text-xs font-mono mb-2">/{post.slug}</p>
+
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {post.tags.slice(0, 4).map((tag) => (
+                      <span
+                        key={tag}
+                        className="bg-white/5 text-text-light/50 text-xs px-2 py-0.5 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {post.tags.length > 4 && (
+                      <span className="text-text-light/30 text-xs py-0.5">+{post.tags.length - 4}</span>
+                    )}
+                  </div>
                 )}
 
-                {/* Date: scheduled or published */}
-                {post.status === "scheduled" && post.scheduledAt ? (
-                  <span className="text-blue-400 text-xs">
-                    Scheduled for {formatDate(post.scheduledAt)}
-                  </span>
-                ) : post.publishedAt ? (
-                  <span className="text-text-light/30 text-xs">{formatDate(post.publishedAt)}</span>
-                ) : null}
-              </div>
-            </button>
+                {/* Bottom meta row */}
+                <div className="flex items-center gap-2 flex-wrap mt-1">
+                  {/* Author */}
+                  {post.authorIds && post.authorIds.length > 0 && (
+                    <span className="text-text-light/40 text-xs font-mono">
+                      {post.authorIds[0]}
+                    </span>
+                  )}
+
+                  {/* Word count + read time */}
+                  {(post.wordCount > 0 || post.readTimeMinutes > 0) && (
+                    <span className="text-text-light/30 text-xs">
+                      {post.wordCount > 0 && post.readTimeMinutes > 0
+                        ? `${post.wordCount} words · ${post.readTimeMinutes} min read`
+                        : post.wordCount > 0
+                        ? `${post.wordCount} words`
+                        : `${post.readTimeMinutes} min read`}
+                    </span>
+                  )}
+
+                  {/* Date: scheduled or published */}
+                  {post.status === "scheduled" && post.scheduledAt ? (
+                    <span className="text-blue-400 text-xs">
+                      Scheduled for {formatDate(post.scheduledAt)}
+                    </span>
+                  ) : post.publishedAt ? (
+                    <span className="text-text-light/30 text-xs">{formatDate(post.publishedAt)}</span>
+                  ) : null}
+                </div>
+              </button>
+
+              {/* Delete button — top-right corner */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setDeleteTarget(post)
+                }}
+                className="absolute top-3 right-3 p-1.5 rounded-lg text-text-light/0 group-hover:text-text-light/40 hover:!text-red-400 hover:bg-red-400/10 transition"
+                title="Delete post"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -263,6 +302,56 @@ export default function PostsListPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget && !deleting) setDeleteTarget(null) }}
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => { if (!deleting) setDeleteTarget(null) }}
+          />
+          <div className="relative bg-space-mid rounded-2xl border border-white/10 shadow-2xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-white font-medium">Delete this post?</h2>
+                <p className="text-text-light/50 text-sm">This cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-text-light/70 text-sm mb-6 bg-white/5 rounded-lg px-3 py-2 font-medium">
+              {deleteTarget.title || deleteTarget.slug}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="flex-1 text-sm text-text-light/50 hover:text-white py-2 rounded-lg border border-white/10 hover:border-white/20 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeletePost}
+                disabled={deleting}
+                className="flex-1 text-sm bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg disabled:opacity-50 transition"
+              >
+                {deleting ? "Deleting…" : "Delete Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-space-mid border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50">
+          {toast}
         </div>
       )}
     </div>

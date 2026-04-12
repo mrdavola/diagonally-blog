@@ -387,6 +387,21 @@ export default function PostEditorPage() {
     setTimeout(() => setPreviewCopied(false), 2000)
   }
 
+  // ── Delete post ───────────────────────────────────────────────────────────────
+  async function handleDeletePost() {
+    setDeleting(true)
+    try {
+      const slug = currentSlug || slugParam
+      await deletePost(slug)
+      router.push("/admin/posts")
+    } catch (err) {
+      console.error(err)
+      showToast("Delete failed. Please try again.")
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
   // ── Styles ───────────────────────────────────────────────────────────────────
   const inputClass =
     "w-full bg-white/5 border border-white/10 text-text-light rounded-lg px-3 py-2 focus:outline-none focus:border-blue-primary/50 placeholder:text-text-light/30 text-sm"
@@ -608,6 +623,17 @@ export default function PostEditorPage() {
               Email subscribers
             </span>
           </label>
+
+          {/* Delete button */}
+          {!isNew && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="p-2 rounded-lg text-text-light/30 hover:text-red-400 hover:bg-red-400/10 transition"
+              title="Delete post"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
 
           <button
             onClick={handlePublish}
@@ -933,6 +959,51 @@ export default function PostEditorPage() {
             showToast("Version restored")
           }}
         />
+      )}
+
+      {/* ── Delete Confirmation Dialog ───────────────────────────────────────── */}
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget && !deleting) setShowDeleteConfirm(false) }}
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => { if (!deleting) setShowDeleteConfirm(false) }}
+          />
+          <div className="relative bg-space-mid rounded-2xl border border-white/10 shadow-2xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-white font-medium">Delete this post?</h2>
+                <p className="text-text-light/50 text-sm">This cannot be undone.</p>
+              </div>
+            </div>
+            {post.title && (
+              <p className="text-text-light/70 text-sm mb-6 bg-white/5 rounded-lg px-3 py-2 font-medium">
+                {post.title}
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 text-sm text-text-light/50 hover:text-white py-2 rounded-lg border border-white/10 hover:border-white/20 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeletePost}
+                disabled={deleting}
+                className="flex-1 text-sm bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg disabled:opacity-50 transition"
+              >
+                {deleting ? "Deleting…" : "Delete Post"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
