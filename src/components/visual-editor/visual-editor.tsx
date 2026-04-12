@@ -1,15 +1,17 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
 import { loadPageSections, saveDraftSections } from "@/lib/visual-editor/firestore"
+import { onCanvasMessage } from "@/lib/visual-editor/message-bridge"
 import { useAuth } from "@/components/admin/auth-provider"
 import { EditorTopBar } from "./shell/editor-top-bar"
 import { ViewportFrame } from "./shell/viewport-frame"
 import { PropertyPanel } from "./panels/property-panel"
 import { SectionPanel } from "./panels/section-panel"
 import { BlockInserter } from "./inserters/block-inserter"
+import { SectionInserter } from "./inserters/section-inserter"
 import { SectionListPanel } from "./panels/section-list-panel"
 
 interface VisualEditorProps {
@@ -22,6 +24,7 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   const router = useRouter()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+  const [insertionIndex, setInsertionIndex] = useState<number>(0)
 
   const init = useEditorStore((s) => s.init)
   const setSaveStatus = useEditorStore((s) => s.setSaveStatus)
@@ -139,6 +142,37 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   // Silence unused-var warning — undo/redo/deselect are accessed via getState()
   void undo; void redo; void deselect
 
+  // ─── Section inserter: track insertion index from canvas REQUEST_INSERT ───
+
+  const sectionsRef = useRef(sections)
+  useEffect(() => { sectionsRef.current = sections }, [sections])
+
+  const handleOpenSectionInserter = useCallback((atIndex: number) => {
+    setInsertionIndex(atIndex)
+    useEditorStore.getState().setActivePanel("section-inserter")
+  }, [])
+
+  useEffect(() => {
+    const cleanup = onCanvasMessage((message) => {
+      if (message.type !== "REQUEST_INSERT") return
+      if (message.payload.insertType !== "section") return
+
+      const { sectionId, position } = message.payload
+      const currentSections = sectionsRef.current
+      const idx = currentSections.findIndex((s) => s.id === sectionId)
+
+      let insertAt: number
+      if (idx === -1) {
+        insertAt = currentSections.length
+      } else {
+        insertAt = position === "after" ? idx + 1 : idx
+      }
+
+      handleOpenSectionInserter(insertAt)
+    })
+    return cleanup
+  }, [handleOpenSectionInserter])
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -191,8 +225,18 @@ export function VisualEditor({ slug }: VisualEditorProps) {
         {activePanel === "section-list" && (
           <SectionListPanel
             onClose={handleClosePanel}
-            onAddSection={() => useEditorStore.getState().setActivePanel("section-inserter")}
+            onAddSection={() => handleOpenSectionInserter(sections.length)}
           />
+        )}
+
+        {/* Section inserter */}
+        {activePanel === "section-inserter" && (
+          <div className="absolute right-0 top-0 z-40 h-full">
+            <SectionInserter
+              insertAtIndex={insertionIndex}
+              onClose={handleClosePanel}
+            />
+          </div>
         )}
       </div>
     </div>
