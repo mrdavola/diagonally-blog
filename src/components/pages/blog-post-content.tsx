@@ -84,6 +84,7 @@ export default function BlogPostContent({ slug }: BlogPostContentProps) {
   const [post, setPost] = useState<PostDocument | null | undefined>(undefined)
   const [author, setAuthor] = useState<Author | null>(null)
   const [relatedPosts, setRelatedPosts] = useState<PostDocument[]>([])
+  const [viewCount, setViewCount] = useState<number | null>(null)
 
   useEffect(() => {
     getPost(slug)
@@ -92,8 +93,11 @@ export default function BlogPostContent({ slug }: BlogPostContentProps) {
 
         if (!fetchedPost) return
 
-        // Track view
-        fetch(`/api/posts/${slug}/view`, { method: "POST" }).catch(() => {})
+        // Track view and capture count
+        fetch(`/api/posts/${slug}/view`, { method: "POST" })
+          .then((res) => res.json())
+          .then((data) => { if (typeof data.views === "number") setViewCount(data.views) })
+          .catch(() => {})
 
         // Fetch author
         if (fetchedPost.authorIds?.[0]) {
@@ -230,6 +234,9 @@ export default function BlogPostContent({ slug }: BlogPostContentProps) {
                 {formatDate(post.publishedAt)}
                 {post.readTimeMinutes > 0 && (
                   <span> &middot; {post.readTimeMinutes} min read</span>
+                )}
+                {viewCount !== null && viewCount > 0 && (
+                  <span> &middot; {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}</span>
                 )}
               </p>
             </div>
