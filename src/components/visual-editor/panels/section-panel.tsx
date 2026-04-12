@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { X } from "lucide-react"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
-import type { Section, SectionLayout, SectionBackground, SectionDivider, AnimationConfig } from "@/lib/visual-editor/types"
+import type { Section, SectionLayout, SectionBackground, SectionDivider, AnimationConfig, SectionOverrides } from "@/lib/visual-editor/types"
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
@@ -351,6 +351,8 @@ function StyleTab({ section, onChange }: StyleTabProps) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+type ResponsiveBp = "desktop" | "tablet" | "mobile"
+
 interface AdvancedTabProps {
   section: Section
   onChange: (changes: Partial<Section>) => void
@@ -358,9 +360,26 @@ interface AdvancedTabProps {
 
 function AdvancedTab({ section, onChange }: AdvancedTabProps) {
   const anim = section.animation
+  const [editingBp, setEditingBp] = useState<ResponsiveBp>("desktop")
 
   function updateAnim(patch: Partial<AnimationConfig>) {
     onChange({ animation: { ...anim, ...patch } })
+  }
+
+  const showOverrides = editingBp !== "desktop"
+  const activeBp = editingBp as "tablet" | "mobile"
+  const bpOverrides: SectionOverrides = section.responsive[activeBp] ?? {}
+  const bpPaddingTop = bpOverrides.spacing?.paddingTop ?? section.spacing.paddingTop
+  const bpPaddingBottom = bpOverrides.spacing?.paddingBottom ?? section.spacing.paddingBottom
+  const bpColumns = bpOverrides.layout?.columns ?? section.layout.columns
+
+  function saveResponsiveOverride(patch: SectionOverrides) {
+    onChange({
+      responsive: {
+        ...section.responsive,
+        [activeBp]: { ...bpOverrides, ...patch },
+      },
+    })
   }
 
   return (
@@ -407,6 +426,80 @@ function AdvancedTab({ section, onChange }: AdvancedTabProps) {
         />
         <p className="mt-1 text-xs text-gray-400">Applied to the section wrapper element.</p>
       </div>
+
+      {/* ─── Responsive overrides ─── */}
+      <div>
+        <label className={labelCls}>Responsive</label>
+        <select
+          className={inputCls}
+          value={editingBp}
+          onChange={(e) => setEditingBp(e.target.value as ResponsiveBp)}
+        >
+          <option value="desktop">Desktop</option>
+          <option value="tablet">Tablet</option>
+          <option value="mobile">Mobile</option>
+        </select>
+      </div>
+
+      {showOverrides && (
+        <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 space-y-3">
+          <p className="text-xs font-medium text-blue-700 uppercase tracking-wider">
+            {editingBp} overrides
+          </p>
+
+          {/* Columns override */}
+          <div>
+            <label className={labelCls}>Columns</label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => saveResponsiveOverride({ layout: { ...bpOverrides.layout, columns: n } })}
+                  className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
+                    bpColumns === n
+                      ? "border-blue-500 bg-blue-100 text-blue-600"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Padding overrides */}
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className={labelCls}>Padding top (px)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={bpPaddingTop}
+                min={0}
+                onChange={(e) =>
+                  saveResponsiveOverride({
+                    spacing: { ...bpOverrides.spacing, paddingTop: Number(e.target.value) },
+                  })
+                }
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Padding bottom (px)</label>
+              <input
+                type="number"
+                className={inputCls}
+                value={bpPaddingBottom}
+                min={0}
+                onChange={(e) =>
+                  saveResponsiveOverride({
+                    spacing: { ...bpOverrides.spacing, paddingBottom: Number(e.target.value) },
+                  })
+                }
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

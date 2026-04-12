@@ -18,6 +18,7 @@ import { SectionInserter } from "./inserters/section-inserter"
 import { SectionInserterMobile } from "./inserters/section-inserter-mobile"
 import { SectionListPanel } from "./panels/section-list-panel"
 import { GlobalStylesPanel } from "./panels/global-styles-panel"
+import { VersionHistoryPanel } from "./panels/version-history-panel"
 
 interface VisualEditorProps {
   slug: string
@@ -267,6 +268,11 @@ export function VisualEditor({ slug }: VisualEditorProps) {
         {/* Global styles panel */}
         {activePanel === "global-styles" && (
           <GlobalStylesPanel onClose={handleClosePanel} narrow={deviceType === "tablet"} />
+        )}
+
+        {/* Version history panel */}
+        {activePanel === "version-history" && (
+          <VersionHistoryPanel onClose={handleClosePanel} narrow={deviceType === "tablet"} />
         )}
 
         {/* Section inserter */}

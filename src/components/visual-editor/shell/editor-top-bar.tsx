@@ -1,6 +1,6 @@
 "use client"
 
-import { List, Monitor, Paintbrush, Redo2, Smartphone, Tablet, Undo2 } from "lucide-react"
+import { Clock, List, Monitor, Paintbrush, Redo2, Smartphone, Tablet, Undo2 } from "lucide-react"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
 import type { Viewport } from "@/lib/visual-editor/types"
 
@@ -35,6 +35,10 @@ export function EditorTopBar({ onExit, onSave }: EditorTopBarProps) {
 
   function handleGlobalStyles() {
     setActivePanel(activePanel === "global-styles" ? null : "global-styles")
+  }
+
+  function handleVersionHistory() {
+    setActivePanel(activePanel === "version-history" ? null : "version-history")
   }
 
   return (
@@ -133,6 +137,19 @@ export function EditorTopBar({ onExit, onSave }: EditorTopBarProps) {
           }`}
         >
           <Paintbrush size={15} />
+        </button>
+
+        {/* Version history */}
+        <button
+          onClick={handleVersionHistory}
+          title="Version history"
+          className={`h-7 w-7 flex items-center justify-center rounded transition-colors ${
+            activePanel === "version-history"
+              ? "bg-gray-900 text-white"
+              : "hover:bg-gray-100 text-gray-600"
+          }`}
+        >
+          <Clock size={15} />
         </button>
       </div>
     </div>

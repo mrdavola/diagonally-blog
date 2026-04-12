@@ -8,6 +8,8 @@ import {
   collection,
   serverTimestamp,
   Timestamp,
+  query,
+  orderBy,
 } from "firebase/firestore"
 import { db } from "../firebase"
 import type { Section, SiteStyles, SectionTemplate } from "./types"
@@ -152,6 +154,34 @@ export async function saveSiteStyles(
     { ...styles, updatedAt: serverTimestamp(), updatedBy: editorEmail },
     { merge: true }
   )
+}
+
+// ─── Version History ──────────────────────────────────────────────────────────
+
+export interface PageSectionVersion {
+  id: string
+  version: number
+  sections: Section[]
+  publishedBy: string
+  publishedAt: Date
+  note: string
+}
+
+export async function getVersionHistory(slug: string): Promise<PageSectionVersion[]> {
+  const versionsRef = collection(db, "pages", slug, "versions")
+  const q = query(versionsRef, orderBy("version", "desc"))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => {
+    const data = d.data() as Record<string, unknown>
+    return {
+      id: d.id,
+      version: (data.version as number) ?? 0,
+      sections: (data.sections as Section[]) ?? [],
+      publishedBy: (data.publishedBy as string) ?? "",
+      publishedAt: timestampToDate(data.publishedAt),
+      note: (data.note as string) ?? "",
+    }
+  })
 }
 
 // ─── Section Templates ────────────────────────────────────────────────────────

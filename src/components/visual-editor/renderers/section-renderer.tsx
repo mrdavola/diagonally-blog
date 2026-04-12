@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useRef, useEffect } from "react"
 import type { Section, SectionBackground, SectionLayout } from "@/lib/visual-editor/types"
 import { ZoneRenderer } from "./zone-renderer"
 import { SectionIdContext } from "@/components/visual-editor/canvas/inline-edit-context"
@@ -81,7 +81,49 @@ interface SectionRendererProps {
 }
 
 export function SectionRenderer({ section }: SectionRendererProps) {
-  const { layout, background, spacing } = section
+  const { layout, background, spacing, animation } = section
+  const sectionRef = useRef<HTMLElement | null>(null)
+
+  // ─── Animation ────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el || !animation || animation.type === "none") return
+
+    const animClass = `ve-animate-${animation.type}`
+    el.classList.add(animClass)
+
+    if (animation.trigger === "on-load") {
+      // delay only; CSS drives the actual animation
+      return
+    }
+
+    // on-scroll: pause until visible
+    el.classList.add("ve-animate-paused")
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const target = entry.target as HTMLElement
+            if (animation.delay > 0) {
+              setTimeout(() => target.classList.add("ve-animate-active"), animation.delay)
+            } else {
+              target.classList.add("ve-animate-active")
+            }
+            observer.unobserve(target)
+          }
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(el)
+
+    return () => {
+      observer.disconnect()
+      el.classList.remove(animClass, "ve-animate-paused", "ve-animate-active")
+    }
+  }, [animation])
 
   const bgStyles = getBackgroundStyles(background)
   const hasOverlay =
@@ -111,12 +153,19 @@ export function SectionRenderer({ section }: SectionRendererProps) {
     </div>
   )
 
+  // Inline delay for on-load animations
+  const animationStyle: React.CSSProperties =
+    animation && animation.type !== "none" && animation.trigger === "on-load" && animation.delay > 0
+      ? { animationDelay: `${animation.delay}ms` }
+      : {}
+
   return (
     <SectionIdContext.Provider value={section.id}>
     <section
+      ref={sectionRef}
       data-section-id={section.id}
       data-section-label={section.label}
-      style={sectionStyle}
+      style={{ ...sectionStyle, ...animationStyle }}
     >
       {/* Background video */}
       {background.type === "video" && background.video && (

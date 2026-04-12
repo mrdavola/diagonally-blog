@@ -1,6 +1,6 @@
 "use client"
 
-import type { EditorBlock, BlockStyle, BlockPosition } from "@/lib/visual-editor/types"
+import type { EditorBlock, BlockStyle, BlockPosition, AnimationConfig } from "@/lib/visual-editor/types"
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
 
@@ -27,12 +27,14 @@ interface StyleTabProps {
   sectionId: string
   onUpdateStyle: (style: Partial<BlockStyle>) => void
   onUpdatePosition: (pos: Partial<BlockPosition>) => void
+  onUpdateAnimation?: (anim: AnimationConfig) => void
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function StyleTab({ block, onUpdateStyle, onUpdatePosition }: StyleTabProps) {
+export function StyleTab({ block, sectionId, onUpdateStyle, onUpdatePosition, onUpdateAnimation }: StyleTabProps) {
   const { style, position } = block
+  void sectionId
 
   const margin = style.margin ?? {}
   const padding = style.padding ?? {}
@@ -162,6 +164,77 @@ export function StyleTab({ block, onUpdateStyle, onUpdatePosition }: StyleTabPro
           <span className="w-8 text-right text-sm text-gray-600">{style.opacity ?? 100}</span>
         </div>
       </Field>
+
+      {/* Animation */}
+      <SectionLabel>Animation</SectionLabel>
+      {(() => {
+        const anim: AnimationConfig = style.animation ?? { type: "none", trigger: "on-load", delay: 0 }
+
+        function updateAnim(patch: Partial<AnimationConfig>) {
+          const next: AnimationConfig = { ...anim, ...patch }
+          if (onUpdateAnimation) {
+            onUpdateAnimation(next)
+          } else {
+            onUpdateStyle({ animation: next })
+          }
+        }
+
+        function handlePreview() {
+          // Re-trigger by removing and re-adding the animation style
+          updateAnim({ type: "none" })
+          setTimeout(() => updateAnim({ type: anim.type }), 50)
+        }
+
+        return (
+          <>
+            <Field label="Type">
+              <select
+                className={inputCls}
+                value={anim.type}
+                onChange={(e) => updateAnim({ type: e.target.value as AnimationConfig["type"] })}
+              >
+                <option value="none">None</option>
+                <option value="fade-in">Fade in</option>
+                <option value="slide-up">Slide up</option>
+                <option value="scale-in">Scale in</option>
+              </select>
+            </Field>
+
+            {anim.type !== "none" && (
+              <>
+                <Field label="Trigger">
+                  <select
+                    className={inputCls}
+                    value={anim.trigger}
+                    onChange={(e) => updateAnim({ trigger: e.target.value as AnimationConfig["trigger"] })}
+                  >
+                    <option value="on-load">On load</option>
+                    <option value="on-scroll">On scroll</option>
+                  </select>
+                </Field>
+
+                <Field label="Delay (ms)">
+                  <input
+                    type="number"
+                    className={inputCls}
+                    min={0}
+                    step={100}
+                    value={anim.delay}
+                    onChange={(e) => updateAnim({ delay: Number(e.target.value) })}
+                  />
+                </Field>
+
+                <button
+                  onClick={handlePreview}
+                  className="w-full rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  Preview animation
+                </button>
+              </>
+            )}
+          </>
+        )
+      })()}
     </div>
   )
 }

@@ -240,5 +240,5 @@ export type CanvasToParentMessage =
 export type EditorMode = "management" | "editing"
 export type Viewport = "desktop" | "tablet" | "mobile"
 export type SaveStatus = "saved" | "saving" | "unsaved"
-export type PanelType = "properties" | "section-inserter" | "block-inserter" | "global-styles" | "section-list" | null
+export type PanelType = "properties" | "section-inserter" | "block-inserter" | "global-styles" | "section-list" | "version-history" | null
 export type PropertyTab = "content" | "style" | "advanced"
