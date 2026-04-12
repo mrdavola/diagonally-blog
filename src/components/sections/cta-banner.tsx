@@ -10,10 +10,10 @@ export default function CTABanner() {
 
       <div className="relative z-10 py-24 md:py-32 px-6 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.97 }}
+          whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold text-white">
             Ready to think diagonally?
@@ -25,13 +25,13 @@ export default function CTABanner() {
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="#demo"
+              href="/schools#demo-form"
               className="bg-blue-deep text-white rounded-xl px-8 py-3.5 font-semibold hover:bg-blue-deep/90 transition-colors duration-200"
             >
               Request a Demo
             </a>
             <a
-              href="#waitlist"
+              href="/parents#waitlist"
               className="border-2 border-emerald text-emerald rounded-xl px-8 py-3.5 font-semibold hover:bg-emerald/10 transition-colors duration-200"
             >
               Join the Waitlist

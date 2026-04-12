@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus } from "lucide-react"
-import { createSubmission } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -54,7 +53,7 @@ const FAQS = [
   {
     question: "How much does it cost for families?",
     answer:
-      "We&rsquo;re currently focused on school partnerships. Family pricing is coming soon — join the waitlist to be first to know.",
+      "We're currently focused on school partnerships. Family pricing is coming soon — join the waitlist to be first to know.",
   },
 ]
 
@@ -107,13 +106,6 @@ export default function ParentsContent() {
         setError(data.error ?? "Something went wrong. Please try again.")
         return
       }
-      // Client-side Firestore write
-      await createSubmission({
-        type: "waitlist",
-        name: formState.name,
-        email: formState.email,
-        data: { grade: formState.grade, source: formState.source },
-      })
       setSuccess(true)
       setFormState({ name: "", email: "", grade: "", source: "" })
     } catch {
@@ -219,12 +211,12 @@ export default function ParentsContent() {
           >
             {[
               { label: "Concepts Explored", description: "See every topic your child has visited in the galaxy map." },
-              { label: "Games Built", description: "Browse all the games they&rsquo;ve created and share them with family." },
-              { label: "Mastery Milestones", description: "Track which skills they&rsquo;ve proven through peer gameplay." },
+              { label: "Games Built", description: "Browse all the games they've created and share them with family." },
+              { label: "Mastery Milestones", description: "Track which skills they've proven through peer gameplay." },
             ].map((item, i) => (
               <div key={i} className="bg-cream rounded-2xl p-6">
                 <h3 className="font-display text-lg font-bold text-text-dark mb-2">{item.label}</h3>
-                <p className="text-text-dark/60 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: item.description }} />
+                <p className="text-text-dark/60 text-sm leading-relaxed">{item.description}</p>
               </div>
             ))}
           </motion.div>
@@ -267,10 +259,11 @@ export default function ParentsContent() {
             className="space-y-5"
           >
             <div>
-              <label className="block text-sm font-medium text-text-dark mb-2">
+              <label htmlFor="parent-name" className="block text-sm font-medium text-text-dark mb-2">
                 Your Name
               </label>
               <input
+                id="parent-name"
                 type="text"
                 value={formState.name}
                 onChange={(e) => setFormState((s) => ({ ...s, name: e.target.value }))}
@@ -279,10 +272,11 @@ export default function ParentsContent() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-dark mb-2">
+              <label htmlFor="parent-email" className="block text-sm font-medium text-text-dark mb-2">
                 Email
               </label>
               <input
+                id="parent-email"
                 type="email"
                 value={formState.email}
                 onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
@@ -291,10 +285,11 @@ export default function ParentsContent() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-dark mb-2">
+              <label htmlFor="parent-grade" className="block text-sm font-medium text-text-dark mb-2">
                 Child&rsquo;s Grade
               </label>
               <select
+                id="parent-grade"
                 value={formState.grade}
                 onChange={(e) => setFormState((s) => ({ ...s, grade: e.target.value }))}
                 className="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-dark focus:outline-none focus:ring-2 focus:ring-blue-primary/40"
@@ -306,10 +301,11 @@ export default function ParentsContent() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-dark mb-2">
+              <label htmlFor="parent-source" className="block text-sm font-medium text-text-dark mb-2">
                 How did you hear about us?
               </label>
               <select
+                id="parent-source"
                 value={formState.source}
                 onChange={(e) => setFormState((s) => ({ ...s, source: e.target.value }))}
                 className="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-dark focus:outline-none focus:ring-2 focus:ring-blue-primary/40"
@@ -370,24 +366,19 @@ export default function ParentsContent() {
                   )}
                 </button>
 
-                <AnimatePresence initial={false}>
-                  {openFaq === i && (
-                    <motion.div
-                      key="content"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeInOut" }}
-                    >
-                      <div className="px-6 pb-5">
-                        <p
-                          className="text-text-dark/60 leading-relaxed"
-                          dangerouslySetInnerHTML={{ __html: faq.answer }}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateRows: openFaq === i ? "1fr" : "0fr",
+                    transition: "grid-template-rows 0.25s ease-in-out",
+                  }}
+                >
+                  <div style={{ overflow: "hidden" }}>
+                    <div className="px-6 pb-5">
+                      <p className="text-text-dark/60 leading-relaxed">{faq.answer}</p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>

@@ -13,10 +13,15 @@ const features = [
 ]
 
 function FeatureCell({ value }: { value: boolean }) {
-  return value ? (
-    <Check className="w-5 h-5 text-emerald mx-auto" />
-  ) : (
-    <X className="w-5 h-5 text-text-dark/20 mx-auto" />
+  return (
+    <>
+      {value ? (
+        <Check className="w-5 h-5 text-emerald mx-auto" />
+      ) : (
+        <X className="w-5 h-5 text-text-dark/20 mx-auto" />
+      )}
+      <span className="sr-only">{value ? "Yes" : "No"}</span>
+    </>
   )
 }
 
@@ -25,10 +30,10 @@ export default function Comparison() {
     <section className="bg-white py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-6">
         <motion.h2
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
           className="font-display text-3xl md:text-4xl font-bold text-text-dark text-center mb-16"
         >
           What Makes Us Different
@@ -42,7 +47,7 @@ export default function Comparison() {
           transition={{ duration: 0.6, delay: 0.15 }}
           className="hidden md:block overflow-hidden rounded-3xl border border-text-dark/8"
         >
-          <table className="w-full">
+          <table className="w-full" aria-label="Feature comparison between math learning tools">
             <thead>
               <tr className="bg-cream-dark">
                 <th className="text-left px-6 py-4 font-display font-bold text-text-dark text-sm w-[200px]">

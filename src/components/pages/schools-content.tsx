@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles, Users, Shield, RefreshCw, Check } from "lucide-react"
 import { Constellation } from "@/components/constellation"
 import { WaveDivider } from "@/components/wave-divider"
-import { createSubmission } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -86,18 +85,6 @@ export default function SchoolsContent() {
         setError(data.error ?? "Something went wrong. Please try again.")
         return
       }
-      // Client-side Firestore write
-      await createSubmission({
-        type: "demo",
-        name: formState.yourName,
-        email: formState.email,
-        data: {
-          schoolName: formState.schoolName,
-          role: formState.role,
-          numStudents: formState.numStudents,
-          message: formState.message,
-        },
-      })
       setSuccess(true)
       setFormState({ schoolName: "", yourName: "", role: "", email: "", numStudents: "", message: "" })
     } catch {
@@ -355,10 +342,11 @@ export default function SchoolsContent() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-text-dark mb-2">
+                <label htmlFor="school-name" className="block text-sm font-medium text-text-dark mb-2">
                   School Name
                 </label>
                 <input
+                  id="school-name"
                   type="text"
                   value={formState.schoolName}
                   onChange={(e) => setFormState((s) => ({ ...s, schoolName: e.target.value }))}
@@ -367,10 +355,11 @@ export default function SchoolsContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-dark mb-2">
+                <label htmlFor="school-your-name" className="block text-sm font-medium text-text-dark mb-2">
                   Your Name
                 </label>
                 <input
+                  id="school-your-name"
                   type="text"
                   value={formState.yourName}
                   onChange={(e) => setFormState((s) => ({ ...s, yourName: e.target.value }))}
@@ -382,10 +371,11 @@ export default function SchoolsContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-medium text-text-dark mb-2">
+                <label htmlFor="school-role" className="block text-sm font-medium text-text-dark mb-2">
                   Role
                 </label>
                 <select
+                  id="school-role"
                   value={formState.role}
                   onChange={(e) => setFormState((s) => ({ ...s, role: e.target.value }))}
                   className="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-dark focus:outline-none focus:ring-2 focus:ring-blue-primary/40"
@@ -398,10 +388,11 @@ export default function SchoolsContent() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-text-dark mb-2">
+                <label htmlFor="school-email" className="block text-sm font-medium text-text-dark mb-2">
                   Email
                 </label>
                 <input
+                  id="school-email"
                   type="email"
                   value={formState.email}
                   onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
@@ -412,10 +403,11 @@ export default function SchoolsContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-dark mb-2">
+              <label htmlFor="school-num-students" className="block text-sm font-medium text-text-dark mb-2">
                 Number of Students
               </label>
               <input
+                id="school-num-students"
                 type="number"
                 value={formState.numStudents}
                 onChange={(e) => setFormState((s) => ({ ...s, numStudents: e.target.value }))}
@@ -426,15 +418,16 @@ export default function SchoolsContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text-dark mb-2">
+              <label htmlFor="school-message" className="block text-sm font-medium text-text-dark mb-2">
                 Message
               </label>
               <textarea
+                id="school-message"
                 value={formState.message}
                 onChange={(e) => setFormState((s) => ({ ...s, message: e.target.value }))}
                 rows={4}
                 className="w-full rounded-xl border border-border bg-white px-4 py-3 text-text-dark placeholder:text-text-dark/30 focus:outline-none focus:ring-2 focus:ring-blue-primary/40 resize-none"
-                placeholder="Tell us about your school and what you&apos;re looking for…"
+                placeholder="Tell us about your school and what you're looking for…"
               />
             </div>
 

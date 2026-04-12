@@ -5,7 +5,6 @@ import Link from "next/link";
 import { BookOpen, PlayCircle, GitFork } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { NAV_LINKS, SOCIAL_LINKS, BRAND } from "@/lib/constants";
-import { addNewsletterSubscriber } from "@/lib/submissions";
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   BookOpen,
@@ -42,8 +41,6 @@ export function Footer() {
         setError(data.error ?? "Something went wrong.");
         return;
       }
-      // Client-side Firestore write
-      await addNewsletterSubscriber(email);
       setSuccess(true);
       setEmail("");
     } catch {
@@ -77,7 +74,6 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <h3
               className="text-white text-sm uppercase tracking-wider font-display font-semibold"
-              style={{ fontFamily: "var(--font-display)" }}
             >
               Navigate
             </h3>
@@ -99,7 +95,6 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <h3
               className="text-white text-sm uppercase tracking-wider font-display font-semibold"
-              style={{ fontFamily: "var(--font-display)" }}
             >
               Resources
             </h3>
@@ -121,7 +116,6 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <h3
               className="text-white text-sm uppercase tracking-wider font-display font-semibold"
-              style={{ fontFamily: "var(--font-display)" }}
             >
               Connect
             </h3>
@@ -148,14 +142,15 @@ export function Footer() {
 
             {/* Newsletter signup */}
             <div className="flex flex-col gap-2">
-              <p className="text-text-light/60 text-xs uppercase tracking-wide">
+              <label htmlFor="footer-email" className="text-text-light/60 text-xs uppercase tracking-wide">
                 Stay in the loop
-              </p>
+              </label>
               {success ? (
                 <p className="text-emerald text-sm font-medium">You&rsquo;re subscribed!</p>
               ) : (
                 <form onSubmit={handleSubscribe} className="flex flex-col gap-2">
                   <input
+                    id="footer-email"
                     type="email"
                     placeholder="your@email.com"
                     value={email}
@@ -179,7 +174,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-text-light/40 text-sm">
-          <p>© 2026 Diagonally. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Diagonally. All rights reserved.</p>
           <p>
             Open source at heart.{" "}
             <Link

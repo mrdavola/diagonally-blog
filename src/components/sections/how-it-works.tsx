@@ -28,10 +28,10 @@ export default function HowItWorks() {
     <section className="bg-cream py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="text-center mb-16"
         >
           <h2 className="font-display text-3xl md:text-4xl font-bold text-text-dark">
@@ -47,10 +47,10 @@ export default function HowItWorks() {
             {steps.map((step, i) => (
               <motion.div
                 key={step.number}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.15 }}
+                transition={{ duration: 0.5, delay: 0.2 + i * 0.18, ease: [0.16, 1, 0.3, 1] }}
                 className="bg-white rounded-3xl p-6 shadow-soft-sm"
               >
                 <div className="w-12 h-12 rounded-full bg-blue-primary flex items-center justify-center mb-5">

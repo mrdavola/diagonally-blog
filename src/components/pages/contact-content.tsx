@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { createSubmission } from "@/lib/submissions"
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -37,8 +36,6 @@ export default function ContactContent() {
         setError(data.error ?? "Something went wrong. Please try again.")
         return
       }
-      // Client-side Firestore write
-      await createSubmission({ type: (inquiryType as "contact" | "demo" | "waitlist") || "contact", name, email, data: { message, inquiryType } })
       setSuccess(true)
       setName("")
       setEmail("")

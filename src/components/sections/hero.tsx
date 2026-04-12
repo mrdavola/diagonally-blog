@@ -36,13 +36,13 @@ export default function Hero() {
           className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <a
-            href="#demo"
+            href="/schools#demo-form"
             className="bg-blue-deep text-white rounded-xl px-8 py-3.5 font-semibold hover:bg-blue-deep/90 transition-colors duration-200"
           >
             Request a Demo
           </a>
           <a
-            href="#waitlist"
+            href="/parents#waitlist"
             className="border-2 border-emerald text-emerald rounded-xl px-8 py-3.5 font-semibold hover:bg-emerald/10 transition-colors duration-200"
           >
             Join the Waitlist

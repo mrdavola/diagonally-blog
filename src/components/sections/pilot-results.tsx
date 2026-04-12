@@ -7,12 +7,12 @@ export default function PilotResults() {
   return (
     <section className="bg-cream py-24 md:py-32">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="border-l-4 border-gold pl-8 md:pl-12">
+        <div>
           <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 1 }}
             className="font-display text-3xl md:text-4xl font-bold text-text-dark"
           >
             11 learners. Zero prompts. 100% wanted more.
@@ -22,10 +22,10 @@ export default function PilotResults() {
             {PILOT_STATS.map((stat, i) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
+                transition={{ duration: 0.4, delay: 0.15 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div className="font-display text-4xl md:text-5xl font-bold text-gold">
                   {stat.value}
@@ -38,12 +38,13 @@ export default function PilotResults() {
           </div>
 
           <motion.blockquote
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -15 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-12 border-l-4 border-gold pl-6"
+            transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-12"
           >
+            <span className="text-6xl text-gold/30 font-display leading-none" aria-hidden="true">&ldquo;</span>
             <p className="font-display text-2xl md:text-3xl italic text-text-dark">
               &ldquo;Now you&apos;ve got the visuals right.&rdquo;
             </p>

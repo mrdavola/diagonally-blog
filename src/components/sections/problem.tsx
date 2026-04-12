@@ -29,10 +29,10 @@ export default function Problem() {
       <section className="bg-cream py-24 md:py-32">
         <div className="max-w-6xl mx-auto px-6">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8 }}
             className="text-center"
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-dark">
@@ -49,10 +49,10 @@ export default function Problem() {
               return (
                 <motion.div
                   key={card.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: i * 0.12 }}
+                  transition={{ duration: 0.5, delay: i * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
                   className="bg-white rounded-3xl p-8 shadow-soft-md"
                 >
                   <div className="w-12 h-12 rounded-full bg-blue-primary/10 flex items-center justify-center mb-5">

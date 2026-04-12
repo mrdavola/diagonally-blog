@@ -25,7 +25,6 @@ export function Logo({ variant = "dark", size = "md" }: LogoProps) {
     <Link
       href="/"
       className={`inline-flex items-center gap-2 font-display font-bold tracking-tight no-underline ${config.text} ${variantClasses[variant]}`}
-      style={{ fontFamily: "var(--font-display)" }}
     >
       <Image
         src="/images/logo.svg"

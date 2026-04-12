@@ -121,7 +121,7 @@ function BlogCard({
             {post.excerpt}
           </p>
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-text-dark/5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-primary to-emerald flex-shrink-0" />
+            <div className="w-6 h-6 rounded-full bg-blue-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-blue-primary">{post.author[0]}</span></div>
             <span className="text-xs text-text-dark/60 font-medium">
               {post.author} &middot; {post.date}
             </span>
@@ -207,7 +207,7 @@ export default function BlogContent() {
                     {FEATURED_POST.excerpt}
                   </p>
                   <div className="flex items-center gap-3 mt-6 pt-6 border-t border-text-dark/5">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-primary to-emerald flex-shrink-0" />
+                    <div className="w-8 h-8 rounded-full bg-blue-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-sm font-bold text-blue-primary">{FEATURED_POST.author[0]}</span></div>
                     <span className="text-sm text-text-dark/60 font-medium">
                       {FEATURED_POST.author} &middot; {FEATURED_POST.date}
                     </span>
