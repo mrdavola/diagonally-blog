@@ -30,20 +30,20 @@ function formatDate(date: Date | null | undefined): string {
 function StatusBadge({ status }: { status: PostDocument["status"] }) {
   if (status === "published") {
     return (
-      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400/80">
         Published
       </span>
     )
   }
   if (status === "scheduled") {
     return (
-      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-400/10 text-blue-400/80">
         Scheduled
       </span>
     )
   }
   return (
-    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">
+    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400/80">
       Draft
     </span>
   )
@@ -134,7 +134,7 @@ export default function PostsListPage() {
           </button>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition"
+            className="flex items-center gap-2 bg-blue-deep/80 hover:bg-blue-deep text-white rounded-xl px-5 py-2.5 text-sm font-medium transition"
           >
             <Plus className="w-4 h-4" />
             New Post
@@ -145,12 +145,12 @@ export default function PostsListPage() {
       {loading ? (
         <div className="text-text-light/50 text-sm py-12 text-center">Loading posts…</div>
       ) : posts.length === 0 ? (
-        <div className="bg-space-deep/50 rounded-2xl p-12 border border-white/10 flex flex-col items-center gap-4 text-center">
+        <div className="bg-admin-surface-raised/50 rounded-2xl p-12 border border-admin-border flex flex-col items-center gap-4 text-center">
           <PenSquare className="w-10 h-10 text-text-light/20" />
           <p className="text-text-light/60 text-sm">No posts yet. Create your first post!</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition"
+            className="flex items-center gap-2 bg-blue-deep/80 hover:bg-blue-deep text-white rounded-xl px-5 py-2.5 text-sm font-medium transition"
           >
             <Plus className="w-4 h-4" />
             New Post
@@ -162,20 +162,20 @@ export default function PostsListPage() {
             <div key={post.slug} className="relative group">
               <button
                 onClick={() => router.push(`/admin/posts/${post.slug}`)}
-                className="w-full bg-space-deep/50 rounded-2xl p-5 border border-white/10 hover:border-white/20 text-left transition hover:bg-space-deep/70"
+                className="w-full bg-admin-surface-raised rounded-xl p-5 border border-admin-border hover:border-admin-border hover:bg-admin-surface-overlay text-left transition-colors"
               >
                 {/* Top row: status + category */}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <StatusBadge status={post.status} />
                   {post.category && (
-                    <span className="text-xs text-text-light/40 bg-white/5 px-2 py-0.5 rounded-full shrink-0">
+                    <span className="text-xs text-text-light/35 bg-white/3 px-2 py-0.5 rounded-full shrink-0">
                       {CATEGORIES[post.category] ?? post.category}
                     </span>
                   )}
                 </div>
 
                 {/* Title */}
-                <p className="text-white font-medium mb-0.5 group-hover:text-blue-300 transition line-clamp-2">
+                <p className="text-white font-display font-semibold mb-0.5 group-hover:text-blue-300 transition line-clamp-2">
                   {post.title || <span className="italic text-text-light/40">Untitled</span>}
                 </p>
 
@@ -185,7 +185,7 @@ export default function PostsListPage() {
                 )}
 
                 {/* Slug */}
-                <p className="text-text-light/40 text-xs font-mono mb-2">/{post.slug}</p>
+                <p className="text-text-light/25 text-xs font-mono mb-2">/{post.slug}</p>
 
                 {/* Tags */}
                 {post.tags && post.tags.length > 0 && (
@@ -193,7 +193,7 @@ export default function PostsListPage() {
                     {post.tags.slice(0, 4).map((tag) => (
                       <span
                         key={tag}
-                        className="bg-white/5 text-text-light/50 text-xs px-2 py-0.5 rounded-full"
+                        className="bg-white/3 text-text-light/40 text-xs px-2 py-0.5 rounded-full"
                       >
                         {tag}
                       </span>
@@ -241,7 +241,7 @@ export default function PostsListPage() {
                   e.stopPropagation()
                   setDeleteTarget(post)
                 }}
-                className="absolute top-3 right-3 p-1.5 rounded-lg text-text-light/0 group-hover:text-text-light/40 hover:!text-red-400 hover:bg-red-400/10 transition"
+                className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-text-light/40 hover:!text-red-400 hover:bg-red-400/10 transition-opacity"
                 title="Delete post"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -258,7 +258,7 @@ export default function PostsListPage() {
           onClick={(e) => { if (e.target === e.currentTarget) setShowCreate(false) }}
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreate(false)} />
-          <div className="relative bg-space-mid rounded-2xl border border-white/10 shadow-2xl w-full max-w-md p-6">
+          <div className="relative bg-admin-surface-raised rounded-2xl border border-admin-border shadow-2xl w-full max-w-md p-6">
             <h2 className="text-white font-display text-lg mb-4">New Post</h2>
 
             <div className="space-y-4">
@@ -315,7 +315,7 @@ export default function PostsListPage() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => { if (!deleting) setDeleteTarget(null) }}
           />
-          <div className="relative bg-space-mid rounded-2xl border border-white/10 shadow-2xl w-full max-w-sm p-6">
+          <div className="relative bg-admin-surface-raised rounded-2xl border border-admin-border shadow-2xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
                 <Trash2 className="w-5 h-5 text-red-400" />
@@ -350,7 +350,7 @@ export default function PostsListPage() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 bg-space-mid border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50">
+        <div className="fixed bottom-6 right-6 bg-admin-surface-overlay border border-admin-border rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50">
           {toast}
         </div>
       )}
