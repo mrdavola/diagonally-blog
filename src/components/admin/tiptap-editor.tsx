@@ -144,15 +144,15 @@ export function TiptapEditor({ content, onChange, onWordCountChange }: TiptapEdi
 
   return (
     <>
-      <div className="rounded-xl border border-white/10 bg-space-mid overflow-hidden">
+      <div className="rounded-2xl border border-admin-border bg-admin-surface-raised overflow-hidden shadow-lg shadow-black/10">
         <TiptapToolbar editor={editor} onOpenMedia={openMedia} />
         <div className="relative">
-          <div className="px-6 py-4 min-h-[400px] prose prose-invert max-w-none text-text-light">
+          <div className="px-8 py-6 min-h-[500px] max-w-none text-text-light">
             <EditorContent editor={editor} />
           </div>
           <SlashMenu editor={editor} />
         </div>
-        <div className="px-6 py-2 border-t border-white/10 flex items-center justify-between text-xs text-text-light/40">
+        <div className="px-8 py-3 border-t border-admin-border-subtle flex items-center justify-between text-xs text-text-light/30 font-medium tracking-wide">
           <span>{wordCount} words</span>
           <span>~{readTime} min read</span>
         </div>
