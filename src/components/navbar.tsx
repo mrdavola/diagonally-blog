@@ -15,45 +15,42 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const detectBackground = useCallback(() => {
-    // Sample the element directly behind the navbar center
-    const navHeight = 64;
-    const sampleY = navHeight / 2;
-    const sampleX = window.innerWidth / 2;
+    // Find the first section/element right after the navbar
+    const main = document.querySelector("main");
+    if (!main) return;
 
-    // Temporarily hide the navbar so elementFromPoint hits what's behind it
-    const nav = document.querySelector("nav");
-    if (!nav) return;
-    const prevPointerEvents = nav.style.pointerEvents;
-    const prevVisibility = nav.style.visibility;
-    nav.style.pointerEvents = "none";
-    nav.style.visibility = "hidden";
+    // Check the first child section or the main element itself
+    const firstSection = main.querySelector("section") || main.firstElementChild || main;
 
-    const el = document.elementFromPoint(sampleX, sampleY);
-
-    nav.style.pointerEvents = prevPointerEvents;
-    nav.style.visibility = prevVisibility;
-
-    if (!el) return;
-
-    // Use a canvas to reliably convert any CSS color (rgb, oklch, hsl, etc.) to RGB
+    // Use a canvas to reliably convert any CSS color format to RGB
     const ctx = document.createElement("canvas").getContext("2d");
     if (!ctx) return;
 
-    // Walk up to find the section/element with a background
-    let current: Element | null = el;
-    while (current && current !== document.body) {
+    // Walk up from the first section to find an element with a background
+    let current: Element | null = firstSection;
+    while (current && current !== document.documentElement) {
       const bg = getComputedStyle(current).backgroundColor;
       if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
         ctx.fillStyle = bg;
-        const hex = ctx.fillStyle; // Canvas normalizes any color to #rrggbb or rgba
-        const match = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-        if (match) {
-          const r = parseInt(match[1], 16);
-          const g = parseInt(match[2], 16);
-          const b = parseInt(match[3], 16);
-          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-          setOnDark(luminance < 0.5);
+        const hex = ctx.fillStyle;
+        // Canvas normalizes colors to #rrggbb or rgb()/rgba() depending on browser
+        let r: number, g: number, b: number;
+        const hexMatch = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+        const rgbMatch = hex.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (hexMatch) {
+          r = parseInt(hexMatch[1], 16);
+          g = parseInt(hexMatch[2], 16);
+          b = parseInt(hexMatch[3], 16);
+        } else if (rgbMatch) {
+          r = parseInt(rgbMatch[1]);
+          g = parseInt(rgbMatch[2]);
+          b = parseInt(rgbMatch[3]);
+        } else {
+          current = current.parentElement;
+          continue;
         }
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        setOnDark(luminance < 0.5);
         return;
       }
       current = current.parentElement;
