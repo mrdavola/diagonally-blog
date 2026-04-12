@@ -23,6 +23,30 @@ function timestampToDate(ts: unknown): Date {
   return new Date()
 }
 
+// ─── Public page data (dual-format: supports old publishedBlocks + new publishedSections) ───
+
+export interface PublishedPageData {
+  publishedSections: Section[] | null
+  publishedBlocks: import("../blocks/types").Block[] | null
+}
+
+export async function getPublishedPageData(slug: string): Promise<PublishedPageData> {
+  const snap = await getDoc(doc(db, "pages", slug))
+  if (!snap.exists()) return { publishedSections: null, publishedBlocks: null }
+
+  const data = snap.data() as Record<string, unknown>
+
+  const publishedSections = Array.isArray(data.publishedSections) && data.publishedSections.length > 0
+    ? (data.publishedSections as Section[])
+    : null
+
+  const publishedBlocks = Array.isArray(data.publishedBlocks) && data.publishedBlocks.length > 0
+    ? (data.publishedBlocks as import("../blocks/types").Block[])
+    : null
+
+  return { publishedSections, publishedBlocks }
+}
+
 // ─── Page Sections ────────────────────────────────────────────────────────────
 
 export async function loadPageSections(

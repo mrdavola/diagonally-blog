@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import BlockRenderer from "@/components/blocks/block-renderer"
-import { getPublishedBlocks } from "@/lib/blocks/firestore"
-import type { Block } from "@/lib/blocks/types"
+import PageRenderer from "@/components/page-renderer"
+import { getPublishedPageData } from "@/lib/visual-editor/firestore"
+import type { PublishedPageData } from "@/lib/visual-editor/firestore"
 
 export default function DynamicPage() {
   const params = useParams()
   const slugParts = params.slug as string[]
   const slug = slugParts ? slugParts.join("/") : ""
-  const [blocks, setBlocks] = useState<Block[] | null>(null)
+  const [pageData, setPageData] = useState<PublishedPageData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,9 +18,9 @@ export default function DynamicPage() {
       setLoading(false)
       return
     }
-    getPublishedBlocks(slug)
-      .then((b) => {
-        setBlocks(b)
+    getPublishedPageData(slug)
+      .then((data) => {
+        setPageData(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -34,13 +34,10 @@ export default function DynamicPage() {
     )
   }
 
-  if (!blocks || blocks.length === 0) {
-    return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <p className="text-text-dark/50">Page not found</p>
-      </div>
-    )
-  }
-
-  return <BlockRenderer blocks={blocks} />
+  return (
+    <PageRenderer
+      publishedSections={pageData?.publishedSections}
+      publishedBlocks={pageData?.publishedBlocks}
+    />
+  )
 }
