@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { Section } from "@/lib/visual-editor/types"
 import { sendToParent } from "@/lib/visual-editor/message-bridge"
+import { useInlineEdit } from "./inline-edit-context"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,27 @@ interface InsertPoint {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function findTextBlockTarget(element: Element | null): { blockId: string; sectionId: string } | null {
+  let el = element
+  while (el && el !== document.documentElement) {
+    const blockType = el.getAttribute("data-block-type")
+    if (blockType === "text") {
+      const blockId = el.getAttribute("data-block-id")
+      if (!blockId) return null
+      // Walk up to find section
+      let parent = el.parentElement
+      while (parent && parent !== document.documentElement) {
+        const sectionId = parent.getAttribute("data-section-id")
+        if (sectionId) return { blockId, sectionId }
+        parent = parent.parentElement
+      }
+      return null
+    }
+    el = el.parentElement
+  }
+  return null
+}
 
 function findEditorTarget(element: Element | null): OverlayTarget | null {
   let el = element
@@ -227,6 +249,7 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
   const [selected, setSelected] = useState<OverlayTarget | null>(null)
   const [insertPoints, setInsertPoints] = useState<InsertPoint[]>([])
   const rafRef = useRef<number | null>(null)
+  const { editingBlockId, startEditing, stopEditing } = useInlineEdit()
 
   // Recompute insert points whenever sections change (after render)
   useEffect(() => {
@@ -237,8 +260,9 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
     return () => cancelAnimationFrame(id)
   }, [sections])
 
-  // Mouse move — throttled via rAF
+  // Mouse move — throttled via rAF (suppress when inline editing)
   const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (editingBlockId) return
     if (rafRef.current !== null) return
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null
@@ -251,10 +275,11 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
         })
       }
     })
-  }, [])
+  }, [editingBlockId])
 
-  // Click — select or deselect
+  // Click — select or deselect (suppress when inline editing)
   const handleClick = useCallback((e: MouseEvent) => {
+    if (editingBlockId) return
     const target = findEditorTarget(e.target as Element)
     if (target) {
       setSelected(target)
@@ -266,32 +291,60 @@ export function EditorRuntime({ sections }: EditorRuntimeProps) {
       setSelected(null)
       sendToParent({ type: "ELEMENT_DESELECTED" })
     }
-  }, [])
+  }, [editingBlockId])
+
+  // Double-click — start inline editing on text blocks
+  const handleDblClick = useCallback((e: MouseEvent) => {
+    const textTarget = findTextBlockTarget(e.target as Element)
+    if (textTarget) {
+      e.preventDefault()
+      e.stopPropagation()
+      startEditing(textTarget.blockId)
+      sendToParent({
+        type: "INLINE_EDIT_STARTED",
+        payload: { sectionId: textTarget.sectionId, blockId: textTarget.blockId },
+      })
+      // Clear selection overlay while editing
+      setSelected(null)
+      setHovered(null)
+    }
+  }, [startEditing])
+
+  // Escape key — stop inline editing
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape" && editingBlockId) {
+      stopEditing()
+    }
+  }, [editingBlockId, stopEditing])
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("click", handleClick)
+    window.addEventListener("dblclick", handleDblClick)
+    window.addEventListener("keydown", handleKeyDown)
     return () => {
       window.removeEventListener("mousemove", handleMouseMove)
       window.removeEventListener("click", handleClick)
+      window.removeEventListener("dblclick", handleDblClick)
+      window.removeEventListener("keydown", handleKeyDown)
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }
-  }, [handleMouseMove, handleClick])
+  }, [handleMouseMove, handleClick, handleDblClick, handleKeyDown])
 
   const isHoverSuppressed = hovered && selected && hovered.id === selected.id
+  const isInlineEditing = editingBlockId !== null
 
   return (
     <>
-      {/* Hover overlay — hidden when same as selected */}
-      {hovered && !isHoverSuppressed && (
+      {/* Overlays are hidden while inline editing — TipTap owns the cursor */}
+      {!isInlineEditing && hovered && !isHoverSuppressed && (
         <OverlayBox
           rect={hovered.rect}
           color="rgba(59,130,246,0.5)"
         />
       )}
 
-      {/* Selection overlay */}
-      {selected && (
+      {!isInlineEditing && selected && (
         <OverlayBox
           rect={selected.rect}
           color="#3b82f6"

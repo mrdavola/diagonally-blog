@@ -3,6 +3,7 @@
 import React from "react"
 import type { Section, SectionBackground, SectionLayout } from "@/lib/visual-editor/types"
 import { ZoneRenderer } from "./zone-renderer"
+import { SectionIdContext } from "@/components/visual-editor/canvas/inline-edit-context"
 
 // ─── Background helpers ──────────────────────────────────────────────────────
 
@@ -111,6 +112,7 @@ export function SectionRenderer({ section }: SectionRendererProps) {
   )
 
   return (
+    <SectionIdContext.Provider value={section.id}>
     <section
       data-section-id={section.id}
       data-section-label={section.label}
@@ -169,5 +171,6 @@ export function SectionRenderer({ section }: SectionRendererProps) {
         )}
       </div>
     </section>
+    </SectionIdContext.Provider>
   )
 }
