@@ -99,18 +99,13 @@ export default function PostsListPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl text-white">Posts</h1>
         <div className="flex items-center gap-2">
-          <div className="relative group">
-            <button
-              disabled
-              className="flex items-center gap-2 bg-white/5 text-text-light/40 rounded-xl px-4 py-2 text-sm font-medium cursor-not-allowed border border-white/10"
-            >
-              <LayoutTemplate className="w-4 h-4" />
-              New from Template
-            </button>
-            <div className="absolute right-0 top-full mt-1.5 bg-space-mid border border-white/10 text-text-light/60 text-xs rounded-lg px-3 py-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
-              Coming soon
-            </div>
-          </div>
+          <button
+            onClick={() => router.push("/admin/templates")}
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium border border-white/10 transition"
+          >
+            <LayoutTemplate className="w-4 h-4" />
+            New from Template
+          </button>
           <button
             onClick={() => setShowCreate(true)}
             className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition"

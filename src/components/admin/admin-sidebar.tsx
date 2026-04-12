@@ -2,13 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FileText, PenSquare, Users, Inbox, Settings, LogOut } from "lucide-react"
+import { FileText, PenSquare, Users, Inbox, Settings, LogOut, LayoutTemplate } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { useAuth } from "@/components/admin/auth-provider"
 
 const NAV_ITEMS = [
   { label: "Pages", icon: FileText, href: "/admin/pages" },
   { label: "Posts", icon: PenSquare, href: "/admin/posts" },
+  { label: "Templates", icon: LayoutTemplate, href: "/admin/templates" },
   { label: "Authors", icon: Users, href: "/admin/authors" },
   { label: "Submissions", icon: Inbox, href: "/admin/submissions" },
   { label: "Settings", icon: Settings, href: "/admin/settings" },
