@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
 import {
   ArrowLeft,
   Save,
@@ -11,9 +11,15 @@ import {
   ChevronRight,
   Loader2,
   History,
+  LayoutTemplate,
+  Share2,
+  Copy,
+  Check,
 } from "lucide-react"
 import { getPost, savePost, publishPost, savePostVersion } from "@/lib/posts"
+import { createPreviewToken } from "@/lib/previews"
 import { listAuthors } from "@/lib/authors"
+import { getTemplate, saveTemplate } from "@/lib/templates"
 import { ImageField } from "@/components/admin/image-field"
 import { TiptapEditor } from "@/components/admin/tiptap-editor"
 import { VersionHistory } from "@/components/admin/version-history"
@@ -86,6 +92,7 @@ export default function PostEditorPage() {
   const isNew = slugParam === "new"
 
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // ── Core state ──────────────────────────────────────────────────────────────
   const [post, setPost] = useState<Partial<PostDocument>>({
@@ -115,6 +122,14 @@ export default function PostEditorPage() {
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [wordCount, setWordCount] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
+  const [templateName, setTemplateName] = useState("")
+  const [templateDescription, setTemplateDescription] = useState("")
+  const [savingTemplate, setSavingTemplate] = useState(false)
+  const [showPreviewPopover, setShowPreviewPopover] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [generatingPreview, setGeneratingPreview] = useState(false)
+  const [previewCopied, setPreviewCopied] = useState(false)
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const currentSlug = (post.slug ?? slugParam) as string
@@ -154,6 +169,26 @@ export default function PostEditorPage() {
       .catch(() => setLoadError("Could not load post. Check your connection."))
       .finally(() => setLoading(false))
   }, [slugParam, isNew])
+
+  // ── Load template (if ?template=id on new post) ───────────────────────────────
+  useEffect(() => {
+    if (!isNew) return
+    const templateId = searchParams.get("template")
+    if (!templateId) return
+
+    setLoading(true)
+    getTemplate(templateId)
+      .then((tmpl) => {
+        if (!tmpl) return
+        setPost((prev) => ({
+          ...prev,
+          draftContent: tmpl.content,
+          category: tmpl.category || prev.category,
+        }))
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [isNew, searchParams])
 
   // ── Auto-slug from title ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -277,10 +312,70 @@ export default function PostEditorPage() {
     }
   }
 
+  // ── Save as Template ─────────────────────────────────────────────────────────
+  async function handleSaveTemplate() {
+    if (!templateName.trim()) return
+    const content = isTiptapContent(post.draftContent ?? null)
+      ? (post.draftContent as TiptapJSON)
+      : EMPTY_DOC
+    setSavingTemplate(true)
+    try {
+      const id =
+        templateName.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") +
+        "-" +
+        Date.now()
+      await saveTemplate({
+        id,
+        name: templateName.trim(),
+        description: templateDescription.trim(),
+        content,
+        category: post.category ?? "",
+      })
+      setSaveTemplateOpen(false)
+      setTemplateName("")
+      setTemplateDescription("")
+      showToast("Template saved!")
+    } catch (err) {
+      console.error(err)
+      showToast("Failed to save template.")
+    } finally {
+      setSavingTemplate(false)
+    }
+  }
+
   // ── Content change ───────────────────────────────────────────────────────────
   function handleContentChange(content: TiptapJSON) {
     setPost((prev) => ({ ...prev, draftContent: content }))
     setDirty(true)
+  }
+
+  // ── Share preview ─────────────────────────────────────────────────────────────
+  async function handleSharePreview() {
+    if (showPreviewPopover && previewUrl) {
+      setShowPreviewPopover(false)
+      return
+    }
+    setGeneratingPreview(true)
+    try {
+      const slug = currentSlug || slugParam
+      const token = await createPreviewToken(slug)
+      const url = `${window.location.origin}/preview/post/${token}`
+      setPreviewUrl(url)
+      setPreviewCopied(false)
+      setShowPreviewPopover(true)
+    } catch (err) {
+      console.error(err)
+      showToast("Could not generate preview link.")
+    } finally {
+      setGeneratingPreview(false)
+    }
+  }
+
+  async function handleCopyPreviewUrl() {
+    if (!previewUrl) return
+    await navigator.clipboard.writeText(previewUrl)
+    setPreviewCopied(true)
+    setTimeout(() => setPreviewCopied(false), 2000)
   }
 
   // ── Styles ───────────────────────────────────────────────────────────────────
@@ -359,6 +454,66 @@ export default function PostEditorPage() {
             </button>
           )}
 
+          {/* Share Preview button + popover */}
+          {!isNew && (
+            <div className="relative">
+              <button
+                onClick={handleSharePreview}
+                disabled={generatingPreview}
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+                title="Share draft preview link"
+              >
+                {generatingPreview ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Share2 className="w-4 h-4" />
+                )}
+                Preview
+              </button>
+
+              {showPreviewPopover && previewUrl && (
+                <div className="absolute right-0 top-full mt-2 bg-space-mid border border-white/10 rounded-xl p-4 shadow-xl z-50 w-80">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-text-light/70 font-medium">Draft preview link</p>
+                    <button
+                      onClick={() => setShowPreviewPopover(false)}
+                      className="text-text-light/40 hover:text-text-light/70 text-xs transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="text-xs text-text-light/40 mb-3">
+                    Expires in 24 hours. Anyone with this link can view the draft.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      readOnly
+                      value={previewUrl}
+                      className="flex-1 bg-white/5 border border-white/10 text-text-light/70 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none truncate"
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                    />
+                    <button
+                      onClick={handleCopyPreviewUrl}
+                      className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white rounded-lg px-3 py-2 text-xs font-medium transition flex-shrink-0"
+                    >
+                      {previewCopied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             onClick={() => handleSaveDraft(false)}
             disabled={saving}
@@ -411,6 +566,15 @@ export default function PostEditorPage() {
               </div>
             )}
           </div>
+
+          <button
+            onClick={() => setSaveTemplateOpen(true)}
+            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition"
+            title="Save as Template"
+          >
+            <LayoutTemplate className="w-4 h-4" />
+            <span className="hidden sm:inline">Save as Template</span>
+          </button>
 
           <button
             onClick={handlePublish}
@@ -649,6 +813,78 @@ export default function PostEditorPage() {
       {toast && (
         <div className="fixed bottom-6 right-6 bg-space-mid border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
           {toast}
+        </div>
+      )}
+
+      {/* ── Save as Template Dialog ──────────────────────────────────────────── */}
+      {saveTemplateOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSaveTemplateOpen(false)
+          }}
+        >
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSaveTemplateOpen(false)}
+          />
+          <div className="relative bg-space-mid rounded-2xl border border-white/10 shadow-2xl w-full max-w-md p-6">
+            <h2 className="text-white font-display text-lg mb-1">Save as Template</h2>
+            <p className="text-text-light/50 text-sm mb-5">
+              The current editor content will be saved as a reusable template.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-text-light/70 text-sm font-medium mb-1.5">
+                  Template Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveTemplate()
+                  }}
+                  placeholder="e.g. Standard Blog Post"
+                  className="w-full bg-space-deep/50 border border-white/10 text-white text-sm rounded-lg px-3 py-2 placeholder:text-text-light/30 focus:outline-none focus:border-blue-500/50"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-text-light/70 text-sm font-medium mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  placeholder="Optional description..."
+                  rows={2}
+                  className="w-full bg-space-deep/50 border border-white/10 text-white text-sm rounded-lg px-3 py-2 placeholder:text-text-light/30 focus:outline-none focus:border-blue-500/50 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setSaveTemplateOpen(false)
+                  setTemplateName("")
+                  setTemplateDescription("")
+                }}
+                className="flex-1 text-sm text-text-light/50 hover:text-white py-2 rounded-lg border border-white/10 hover:border-white/20 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveTemplate}
+                disabled={savingTemplate || !templateName.trim()}
+                className="flex-1 text-sm bg-blue-700 hover:bg-blue-600 text-white py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {savingTemplate ? "Saving…" : "Save Template"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
