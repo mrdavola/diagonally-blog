@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import type { Editor } from "@tiptap/react"
 import {
   Bold,
@@ -23,6 +24,9 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Palette,
+  Highlighter,
+  Check,
 } from "lucide-react"
 
 interface TiptapToolbarProps {
@@ -56,6 +60,145 @@ function ToolbarButton({ onClick, isActive, title, icon: Icon }: ToolbarButtonPr
 
 function Separator() {
   return <div className="w-px h-5 bg-white/10 mx-1" />
+}
+
+const TEXT_COLORS = [
+  { label: "Default", value: null },
+  { label: "White", value: "#ffffff" },
+  { label: "Light Gray", value: "#94a3b8" },
+  { label: "Blue", value: "#60a5fa" },
+  { label: "Green", value: "#34d399" },
+  { label: "Gold", value: "#f59e0b" },
+  { label: "Red", value: "#ef4444" },
+  { label: "Purple", value: "#a78bfa" },
+  { label: "Pink", value: "#f472b6" },
+]
+
+const HIGHLIGHT_COLORS = [
+  { label: "Remove", value: null },
+  { label: "Yellow", value: "#fef08a" },
+  { label: "Green", value: "#bbf7d0" },
+  { label: "Blue", value: "#bfdbfe" },
+  { label: "Pink", value: "#fbcfe8" },
+  { label: "Purple", value: "#e9d5ff" },
+  { label: "Orange", value: "#fed7aa" },
+]
+
+interface ColorPickerProps {
+  colors: { label: string; value: string | null }[]
+  activeColor: string | null
+  onSelect: (color: string | null) => void
+  onClose: () => void
+}
+
+function ColorPicker({ colors, activeColor, onSelect, onClose }: ColorPickerProps) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose()
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [onClose])
+
+  return (
+    <div
+      ref={ref}
+      className="absolute top-full left-0 mt-1 z-50 bg-space-deep border border-white/15 rounded-lg p-2 shadow-xl"
+    >
+      <div className="grid grid-cols-4 gap-1.5">
+        {colors.map((c) => (
+          <button
+            key={c.label}
+            type="button"
+            title={c.label}
+            onClick={() => {
+              onSelect(c.value)
+              onClose()
+            }}
+            className={`w-6 h-6 rounded-full cursor-pointer border transition-transform hover:scale-110 flex items-center justify-center ${
+              c.value === null
+                ? "border-white/30 bg-white/10"
+                : "border-white/20"
+            } ${activeColor === c.value ? "ring-2 ring-white/60 ring-offset-1 ring-offset-space-deep" : ""}`}
+            style={c.value ? { backgroundColor: c.value } : undefined}
+          >
+            {c.value === null && (
+              <span className="text-white/60 text-[10px] font-bold leading-none">✕</span>
+            )}
+            {activeColor === c.value && c.value !== null && (
+              <Check className="w-3 h-3 text-black/70" />
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+interface ColorButtonProps {
+  editor: Editor
+  type: "text" | "highlight"
+}
+
+function ColorButton({ editor, type }: ColorButtonProps) {
+  const [open, setOpen] = useState(false)
+
+  const activeColor: string | null =
+    type === "text"
+      ? editor.getAttributes("textStyle").color ?? null
+      : editor.getAttributes("highlight").color ?? null
+
+  function handleSelect(color: string | null) {
+    if (type === "text") {
+      if (color) {
+        editor.chain().focus().setColor(color).run()
+      } else {
+        editor.chain().focus().unsetColor().run()
+      }
+    } else {
+      if (color) {
+        editor.chain().focus().toggleHighlight({ color }).run()
+      } else {
+        editor.chain().focus().unsetHighlight().run()
+      }
+    }
+  }
+
+  const Icon = type === "text" ? Palette : Highlighter
+  const title = type === "text" ? "Text Color" : "Highlight Color"
+  const colors = type === "text" ? TEXT_COLORS : HIGHLIGHT_COLORS
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        title={title}
+        onClick={() => setOpen((v) => !v)}
+        className={`p-1.5 rounded hover:bg-white/10 transition-colors flex flex-col items-center gap-0.5 ${
+          open ? "bg-white/15 text-blue-primary" : "text-text-light/60"
+        }`}
+      >
+        <Icon className="w-4 h-4" />
+        {/* Active color indicator underline */}
+        <div
+          className="w-4 h-0.5 rounded-full"
+          style={{ backgroundColor: activeColor ?? "transparent", border: activeColor ? undefined : "1px solid rgba(255,255,255,0.2)" }}
+        />
+      </button>
+      {open && (
+        <ColorPicker
+          colors={colors}
+          activeColor={activeColor}
+          onSelect={handleSelect}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </div>
+  )
 }
 
 export function TiptapToolbar({ editor, onOpenMedia }: TiptapToolbarProps) {
@@ -100,6 +243,12 @@ export function TiptapToolbar({ editor, onOpenMedia }: TiptapToolbarProps) {
         title="Inline Code"
         icon={Code}
       />
+
+      <Separator />
+
+      {/* Group 1b — Color pickers */}
+      <ColorButton editor={ed} type="text" />
+      <ColorButton editor={ed} type="highlight" />
 
       <Separator />
 

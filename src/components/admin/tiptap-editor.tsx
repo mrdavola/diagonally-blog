@@ -147,7 +147,7 @@ export function TiptapEditor({ content, onChange, onWordCountChange }: TiptapEdi
       <div className="rounded-xl border border-white/10 bg-space-mid overflow-hidden">
         <TiptapToolbar editor={editor} onOpenMedia={openMedia} />
         <div className="relative">
-          <div className="px-6 py-4 min-h-[400px] prose prose-invert max-w-none">
+          <div className="px-6 py-4 min-h-[400px] prose prose-invert max-w-none text-text-light">
             <EditorContent editor={editor} />
           </div>
           <SlashMenu editor={editor} />

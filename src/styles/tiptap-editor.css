@@ -1,6 +1,8 @@
 /* Tiptap editor styles */
 .tiptap {
   outline: none;
+  color: #e2e8f0; /* text-light */
+  caret-color: #e2e8f0;
 }
 
 .tiptap p.is-editor-empty:first-child::before {
