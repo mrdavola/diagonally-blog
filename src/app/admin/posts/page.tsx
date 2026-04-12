@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, PenSquare } from "lucide-react"
+import { Plus, PenSquare, LayoutTemplate } from "lucide-react"
 import { listPosts, savePost } from "@/lib/posts"
 import type { PostDocument } from "@/lib/blocks/types"
 
@@ -20,6 +20,33 @@ function slugify(title: string): string {
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-")
     .trim()
+}
+
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return ""
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+}
+
+function StatusBadge({ status }: { status: PostDocument["status"] }) {
+  if (status === "published") {
+    return (
+      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+        Published
+      </span>
+    )
+  }
+  if (status === "scheduled") {
+    return (
+      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+        Scheduled
+      </span>
+    )
+  }
+  return (
+    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">
+      Draft
+    </span>
+  )
 }
 
 export default function PostsListPage() {
@@ -71,13 +98,27 @@ export default function PostsListPage() {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl text-white">Posts</h1>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition"
-        >
-          <Plus className="w-4 h-4" />
-          New Post
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="relative group">
+            <button
+              disabled
+              className="flex items-center gap-2 bg-white/5 text-text-light/40 rounded-xl px-4 py-2 text-sm font-medium cursor-not-allowed border border-white/10"
+            >
+              <LayoutTemplate className="w-4 h-4" />
+              New from Template
+            </button>
+            <div className="absolute right-0 top-full mt-1.5 bg-space-mid border border-white/10 text-text-light/60 text-xs rounded-lg px-3 py-1.5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+              Coming soon
+            </div>
+          </div>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-medium transition"
+          >
+            <Plus className="w-4 h-4" />
+            New Post
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -102,31 +143,75 @@ export default function PostsListPage() {
               onClick={() => router.push(`/admin/posts/${post.slug}`)}
               className="bg-space-deep/50 rounded-2xl p-5 border border-white/10 hover:border-white/20 text-left transition hover:bg-space-deep/70 group"
             >
+              {/* Top row: status + category */}
               <div className="flex items-start justify-between gap-3 mb-3">
-                <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    post.status === "published"
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "bg-yellow-500/20 text-yellow-400"
-                  }`}
-                >
-                  {post.status === "published" ? "Published" : "Draft"}
-                </span>
+                <StatusBadge status={post.status} />
                 {post.category && (
-                  <span className="text-xs text-text-light/40 bg-white/5 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-text-light/40 bg-white/5 px-2 py-0.5 rounded-full shrink-0">
                     {CATEGORIES[post.category] ?? post.category}
                   </span>
                 )}
               </div>
-              <p className="text-white font-medium mb-1 group-hover:text-blue-300 transition line-clamp-2">
+
+              {/* Title */}
+              <p className="text-white font-medium mb-0.5 group-hover:text-blue-300 transition line-clamp-2">
                 {post.title || <span className="italic text-text-light/40">Untitled</span>}
               </p>
-              <p className="text-text-light/40 text-xs font-mono">/{post.slug}</p>
-              {post.publishedAt && (
-                <p className="text-text-light/40 text-xs mt-2">
-                  {post.publishedAt.toLocaleDateString()}
-                </p>
+
+              {/* Subtitle */}
+              {post.subtitle && (
+                <p className="text-text-light/50 text-sm mb-1 line-clamp-1">{post.subtitle}</p>
               )}
+
+              {/* Slug */}
+              <p className="text-text-light/40 text-xs font-mono mb-2">/{post.slug}</p>
+
+              {/* Tags */}
+              {post.tags && post.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {post.tags.slice(0, 4).map((tag) => (
+                    <span
+                      key={tag}
+                      className="bg-white/5 text-text-light/50 text-xs px-2 py-0.5 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {post.tags.length > 4 && (
+                    <span className="text-text-light/30 text-xs py-0.5">+{post.tags.length - 4}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Bottom meta row */}
+              <div className="flex items-center gap-2 flex-wrap mt-1">
+                {/* Author */}
+                {post.authorIds && post.authorIds.length > 0 && (
+                  <span className="text-text-light/40 text-xs font-mono">
+                    {post.authorIds[0]}
+                  </span>
+                )}
+
+                {/* Word count + read time */}
+                {(post.wordCount > 0 || post.readTimeMinutes > 0) && (
+                  <span className="text-text-light/30 text-xs">
+                    {post.wordCount > 0 && post.readTimeMinutes > 0
+                      ? `${post.wordCount} words · ${post.readTimeMinutes} min read`
+                      : post.wordCount > 0
+                      ? `${post.wordCount} words`
+                      : `${post.readTimeMinutes} min read`}
+                  </span>
+                )}
+
+                {/* Date: scheduled or published */}
+                {post.status === "scheduled" && post.scheduledAt ? (
+                  <span className="text-blue-400 text-xs">
+                    Scheduled for {formatDate(post.scheduledAt)}
+                  </span>
+                ) : post.publishedAt ? (
+                  <span className="text-text-light/30 text-xs">{formatDate(post.publishedAt)}</span>
+                ) : null}
+              </div>
             </button>
           ))}
         </div>
