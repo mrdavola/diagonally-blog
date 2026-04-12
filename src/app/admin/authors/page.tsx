@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, UserCircle2, Pencil, Trash2, X, Loader2 } from "lucide-react"
+import { Plus, UserCircle2, Pencil, Trash2, X, Loader2, Link } from "lucide-react"
 import { listAuthors, saveAuthor, deleteAuthor } from "@/lib/authors"
 import { ImageField } from "@/components/admin/image-field"
 import type { Author } from "@/lib/blocks/types"
@@ -87,6 +87,69 @@ function AuthorForm({ initial, onSave, onCancel }: AuthorFormProps) {
           className={`${inputClass} resize-none`}
         />
       </div>
+      {/* Social Links */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className={labelClass}>Social Links</label>
+          <button
+            type="button"
+            onClick={() =>
+              set({ socialLinks: [...author.socialLinks, { platform: "", url: "" }] })
+            }
+            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition"
+          >
+            <Plus className="w-3 h-3" />
+            Add link
+          </button>
+        </div>
+        {author.socialLinks.length === 0 ? (
+          <p className="text-text-light/30 text-xs italic">No social links yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {author.socialLinks.map((link, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <div className="relative flex-shrink-0">
+                  <Link className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-text-light/30 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={link.platform}
+                    onChange={(e) => {
+                      const updated = author.socialLinks.map((l, j) =>
+                        j === i ? { ...l, platform: e.target.value } : l
+                      )
+                      set({ socialLinks: updated })
+                    }}
+                    placeholder="Platform"
+                    className="bg-space-deep/50 border border-white/10 text-white text-xs rounded-lg pl-7 pr-2 py-2 w-28 placeholder:text-text-light/30 focus:outline-none focus:border-blue-500/50"
+                  />
+                </div>
+                <input
+                  type="url"
+                  value={link.url}
+                  onChange={(e) => {
+                    const updated = author.socialLinks.map((l, j) =>
+                      j === i ? { ...l, url: e.target.value } : l
+                    )
+                    set({ socialLinks: updated })
+                  }}
+                  placeholder="https://..."
+                  className="flex-1 bg-space-deep/50 border border-white/10 text-white text-xs rounded-lg px-3 py-2 placeholder:text-text-light/30 focus:outline-none focus:border-blue-500/50"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    set({ socialLinks: author.socialLinks.filter((_, j) => j !== i) })
+                  }
+                  className="text-text-light/30 hover:text-red-400 transition flex-shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div>
         <label className={labelClass}>Headshot</label>
         <ImageField value={author.headshot} onChange={(url) => set({ headshot: url })} />

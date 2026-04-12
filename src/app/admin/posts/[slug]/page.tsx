@@ -15,8 +15,9 @@ import {
   Share2,
   Copy,
   Check,
+  Trash2,
 } from "lucide-react"
-import { getPost, savePost, publishPost, savePostVersion } from "@/lib/posts"
+import { getPost, savePost, publishPost, savePostVersion, deletePost } from "@/lib/posts"
 import { createPreviewToken } from "@/lib/previews"
 import { listAuthors } from "@/lib/authors"
 import { getTemplate, saveTemplate } from "@/lib/templates"
@@ -131,6 +132,8 @@ export default function PostEditorPage() {
   const [generatingPreview, setGeneratingPreview] = useState(false)
   const [previewCopied, setPreviewCopied] = useState(false)
   const [emailOnPublish, setEmailOnPublish] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const currentSlug = (post.slug ?? slugParam) as string
