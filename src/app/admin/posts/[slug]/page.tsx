@@ -10,11 +10,13 @@ import {
   ChevronDown,
   ChevronRight,
   Loader2,
+  History,
 } from "lucide-react"
 import { getPost, savePost, publishPost, savePostVersion } from "@/lib/posts"
 import { listAuthors } from "@/lib/authors"
 import { ImageField } from "@/components/admin/image-field"
 import { TiptapEditor } from "@/components/admin/tiptap-editor"
+import { VersionHistory } from "@/components/admin/version-history"
 import type { PostDocument, TiptapJSON, Author } from "@/lib/blocks/types"
 import { isTiptapContent } from "@/lib/blocks/types"
 
@@ -112,6 +114,7 @@ export default function PostEditorPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const [wordCount, setWordCount] = useState(0)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const currentSlug = (post.slug ?? slugParam) as string
@@ -344,6 +347,17 @@ export default function PostEditorPage() {
           <div className="flex-1" />
 
           <AutosaveIndicator />
+
+          {!isNew && (
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-text-light rounded-xl px-4 py-2 text-sm font-medium transition"
+              title="Version history"
+            >
+              <History className="w-4 h-4" />
+              History
+            </button>
+          )}
 
           <button
             onClick={() => handleSaveDraft(false)}
@@ -636,6 +650,20 @@ export default function PostEditorPage() {
         <div className="fixed bottom-6 right-6 bg-space-mid border border-white/10 rounded-xl px-4 py-3 text-sm text-white shadow-xl z-50 animate-in fade-in slide-in-from-bottom-2">
           {toast}
         </div>
+      )}
+
+      {/* ── Version History Sidebar ──────────────────────────────────────────── */}
+      {!isNew && (
+        <VersionHistory
+          slug={currentSlug || slugParam}
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          onRestore={(content) => {
+            setPost((prev) => ({ ...prev, draftContent: content }))
+            setDirty(true)
+            showToast("Version restored")
+          }}
+        />
       )}
     </div>
   )
