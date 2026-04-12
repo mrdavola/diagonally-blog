@@ -15,47 +15,87 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const detectBackground = useCallback(() => {
-    // Find the first section/element right after the navbar
-    const main = document.querySelector("main");
-    if (!main) return;
+    const navHeight = 64;
+    const sampleY = navHeight / 2 + window.scrollY;
 
-    // Check the first child section or the main element itself
-    const firstSection = main.querySelector("section") || main.firstElementChild || main;
+    // Find which section is behind the navbar by checking all sections
+    const sections = document.querySelectorAll("main section, main > div");
+    let targetEl: Element | null = null;
 
-    // Use a canvas to reliably convert any CSS color format to RGB
-    const ctx = document.createElement("canvas").getContext("2d");
-    if (!ctx) return;
+    for (const section of sections) {
+      const rect = section.getBoundingClientRect();
+      if (rect.top <= navHeight && rect.bottom > 0) {
+        targetEl = section;
+        break;
+      }
+    }
 
-    // Walk up from the first section to find an element with a background
-    let current: Element | null = firstSection;
+    // Fallback to first section
+    if (!targetEl) {
+      const main = document.querySelector("main");
+      targetEl = main?.querySelector("section") || main?.firstElementChild || null;
+    }
+
+    if (!targetEl) return;
+
+    // Walk up looking for a background color
+    let current: Element | null = targetEl;
     while (current && current !== document.documentElement) {
-      const bg = getComputedStyle(current).backgroundColor;
+      const styles = getComputedStyle(current);
+      const bg = styles.backgroundColor;
+
       if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
-        ctx.fillStyle = bg;
-        const hex = ctx.fillStyle;
-        // Canvas normalizes colors to #rrggbb or rgb()/rgba() depending on browser
-        let r: number, g: number, b: number;
-        const hexMatch = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-        const rgbMatch = hex.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-        if (hexMatch) {
-          r = parseInt(hexMatch[1], 16);
-          g = parseInt(hexMatch[2], 16);
-          b = parseInt(hexMatch[3], 16);
-        } else if (rgbMatch) {
-          r = parseInt(rgbMatch[1]);
-          g = parseInt(rgbMatch[2]);
-          b = parseInt(rgbMatch[3]);
-        } else {
-          current = current.parentElement;
-          continue;
+        // Parse the resolved color — browsers resolve to rgb()/rgba()
+        const match = bg.match(/rgba?\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+        if (match) {
+          const r = parseFloat(match[1]);
+          const g = parseFloat(match[2]);
+          const b = parseFloat(match[3]);
+          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          setOnDark(luminance < 0.5);
+          return;
         }
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        setOnDark(luminance < 0.5);
+
+        // For oklch/lab/etc that browser didn't resolve to rgb,
+        // use a temporary element to force conversion
+        const temp = document.createElement("div");
+        temp.style.backgroundColor = bg;
+        temp.style.display = "none";
+        document.body.appendChild(temp);
+        const resolved = getComputedStyle(temp).backgroundColor;
+        document.body.removeChild(temp);
+
+        const resolvedMatch = resolved.match(/rgba?\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+        if (resolvedMatch) {
+          const r = parseFloat(resolvedMatch[1]);
+          const g = parseFloat(resolvedMatch[2]);
+          const b = parseFloat(resolvedMatch[3]);
+          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          setOnDark(luminance < 0.5);
+          return;
+        }
+
+        // Last resort: check class names for known dark patterns
+        break;
+      }
+      current = current.parentElement;
+    }
+
+    // Fallback: check if the target element or ancestors have dark-themed classes
+    current = targetEl;
+    while (current && current !== document.documentElement) {
+      const classes = current.className || "";
+      if (/bg-space|bg-dark|bg-black|bg-gray-9|bg-slate-9|bg-neutral-9/.test(classes)) {
+        setOnDark(true);
+        return;
+      }
+      if (/bg-white|bg-cream|bg-gray-[1-3]|bg-slate-[1-3]|bg-neutral-[1-3]/.test(classes)) {
+        setOnDark(false);
         return;
       }
       current = current.parentElement;
     }
-    // Default to light background if nothing found
+
     setOnDark(false);
   }, []);
 
