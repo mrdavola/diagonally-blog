@@ -285,9 +285,10 @@ export function SlashMenu({ editor }: SlashMenuProps) {
   return (
     <div
       ref={containerRef}
-      className="fixed z-50 bg-space-deep border border-white/10 rounded-lg shadow-lg overflow-hidden"
-      style={{ top: coords.top + 8, left: coords.left, minWidth: 200 }}
+      className="fixed z-50 bg-admin-surface-overlay border border-admin-border rounded-xl shadow-2xl shadow-black/20 py-2 min-w-[220px]"
+      style={{ top: coords.top + 8, left: coords.left }}
     >
+      <div className="px-4 py-1.5 text-[10px] text-text-light/25 uppercase tracking-widest font-medium">Insert block</div>
       {filteredItems.map((item, index) => {
         const Icon = item.icon
         const isActive = index === activeIndex
@@ -300,13 +301,14 @@ export function SlashMenu({ editor }: SlashMenuProps) {
               executeItem(item)
             }}
             onMouseEnter={() => setActiveIndex(index)}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors text-left ${
+            className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg mx-1 transition-colors text-left ${
               isActive
-                ? "bg-white/10 text-white"
-                : "text-text-light/70 hover:bg-white/5 hover:text-white"
+                ? "bg-white/5 text-white"
+                : "text-text-light/60 hover:bg-white/5 hover:text-white"
             }`}
+            style={{ width: "calc(100% - 0.5rem)" }}
           >
-            <Icon className="w-4 h-4 flex-shrink-0" />
+            <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-text-light/70" : "text-text-light/40"}`} />
             <span>{item.title}</span>
           </button>
         )
