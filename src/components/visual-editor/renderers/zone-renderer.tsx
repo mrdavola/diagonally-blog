@@ -5,6 +5,28 @@ import { TextBlock } from "./blocks/text-block"
 import { ImageBlock } from "./blocks/image-block"
 import { ButtonBlock } from "./blocks/button-block"
 import { SpacerBlock } from "./blocks/spacer-block"
+import { VideoBlock } from "./blocks/video-block"
+import { IconBlock } from "./blocks/icon-block"
+import { ColumnsBlock } from "./blocks/columns-block"
+import { CardBlock } from "./blocks/card-block"
+import { AccordionBlock } from "./blocks/accordion-block"
+import { TabsBlock } from "./blocks/tabs-block"
+import { DividerBlock } from "./blocks/divider-block"
+import { GalleryBlock } from "./blocks/gallery-block"
+import { CarouselBlock } from "./blocks/carousel-block"
+import { AudioBlock } from "./blocks/audio-block"
+import { StatsBlock } from "./blocks/stats-block"
+import { PricingBlock } from "./blocks/pricing-block"
+import { ComparisonBlock } from "./blocks/comparison-block"
+import { ChartBlock } from "./blocks/chart-block"
+import { FormBlock } from "./blocks/form-block"
+import { NewsletterBlock } from "./blocks/newsletter-block"
+import { CtaBlock } from "./blocks/cta-block"
+import { SocialBlock } from "./blocks/social-block"
+import { CodeBlock } from "./blocks/code-block"
+import { EmbedBlock } from "./blocks/embed-block"
+import { MapBlock } from "./blocks/map-block"
+import { CalendarBlock } from "./blocks/calendar-block"
 
 interface BlockComponentProps {
   block: EditorBlock
@@ -31,10 +53,38 @@ const BLOCK_COMPONENTS: Record<
   string,
   React.ComponentType<BlockComponentProps>
 > = {
+  // Essentials
   text: TextBlock,
   image: ImageBlock,
   button: ButtonBlock,
+  video: VideoBlock,
+  icon: IconBlock,
+  // Layout
+  columns: ColumnsBlock,
+  card: CardBlock,
+  accordion: AccordionBlock,
+  tabs: TabsBlock,
+  divider: DividerBlock,
   spacer: SpacerBlock,
+  // Media
+  gallery: GalleryBlock,
+  "image-carousel": CarouselBlock,
+  audio: AudioBlock,
+  // Data
+  "stats-row": StatsBlock,
+  "pricing-card": PricingBlock,
+  "comparison-table": ComparisonBlock,
+  chart: ChartBlock,
+  // Forms & Actions
+  form: FormBlock,
+  "newsletter-signup": NewsletterBlock,
+  "cta-banner": CtaBlock,
+  "social-links": SocialBlock,
+  // Embed
+  code: CodeBlock,
+  embed: EmbedBlock,
+  map: MapBlock,
+  calendar: CalendarBlock,
 }
 
 function getBlockWrapperStyles(block: EditorBlock): React.CSSProperties {
