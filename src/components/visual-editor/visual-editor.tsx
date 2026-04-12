@@ -7,6 +7,9 @@ import { loadPageSections, saveDraftSections } from "@/lib/visual-editor/firesto
 import { useAuth } from "@/components/admin/auth-provider"
 import { EditorTopBar } from "./shell/editor-top-bar"
 import { ViewportFrame } from "./shell/viewport-frame"
+import { PropertyPanel } from "./panels/property-panel"
+import { SectionPanel } from "./panels/section-panel"
+import { BlockInserter } from "./inserters/block-inserter"
 
 interface VisualEditorProps {
   slug: string
@@ -25,6 +28,10 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
   const saveStatus = useEditorStore((s) => s.saveStatus)
+  const activePanel = useEditorStore((s) => s.activePanel)
+  const selectedSectionId = useEditorStore((s) => s.selectedSectionId)
+  const selectedBlockId = useEditorStore((s) => s.selectedBlockId)
+  const sections = useEditorStore((s) => s.sections)
 
   // ─── Load page on mount ──────────────────────────────────────────────────
 
@@ -141,13 +148,44 @@ export function VisualEditor({ slug }: VisualEditorProps) {
     )
   }
 
+  // Derive the first content zone of the selected section (for BlockInserter)
+  const selectedSection = sections.find((s) => s.id === selectedSectionId)
+  const firstZoneId = selectedSection?.contentZones[0]?.id ?? ""
+
+  function handleClosePanel() {
+    useEditorStore.getState().deselect()
+  }
+
   return (
     <div className="flex h-full flex-col">
       <EditorTopBar
         onExit={() => router.push("/admin/pages")}
         onSave={handleManualSave}
       />
-      <ViewportFrame slug={slug} />
+      <div className="relative flex-1 overflow-hidden">
+        <ViewportFrame slug={slug} />
+
+        {/* Property panel — block selected */}
+        {activePanel === "properties" && selectedBlockId && (
+          <PropertyPanel onClose={handleClosePanel} />
+        )}
+
+        {/* Section panel — section selected, no block */}
+        {activePanel === "properties" && selectedSectionId && !selectedBlockId && (
+          <SectionPanel onClose={handleClosePanel} />
+        )}
+
+        {/* Block inserter */}
+        {activePanel === "block-inserter" && selectedSectionId && firstZoneId && (
+          <div className="absolute right-0 top-0 z-40">
+            <BlockInserter
+              targetSectionId={selectedSectionId}
+              targetZoneId={firstZoneId}
+              onClose={handleClosePanel}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
