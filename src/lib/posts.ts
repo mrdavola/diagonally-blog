@@ -59,6 +59,7 @@ function docToPost(data: Record<string, unknown>, slug: string): PostDocument {
     updatedAt: timestampToDate(data.updatedAt),
     wordCount: (data.wordCount as number) ?? 0,
     readTimeMinutes: (data.readTimeMinutes as number) ?? 0,
+    viewCount: (data.viewCount as number) ?? 0,
     templateId: (data.templateId as string) ?? undefined,
   }
 }

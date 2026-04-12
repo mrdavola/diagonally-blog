@@ -164,3 +164,152 @@
     box-shadow: 0 10px 15px oklch(0 0 0 / 0.04), 0 4px 6px oklch(0 0 0 / 0.06);
   }
 }
+
+/* ── Public prose styles for blog post content ─────────────────────────────── */
+
+.prose-diagonally {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--color-text-dark);
+  max-width: 65ch;
+}
+
+.prose-diagonally h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.prose-diagonally h3 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.prose-diagonally h4 {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-diagonally p {
+  margin-bottom: 1.25rem;
+}
+
+.prose-diagonally a {
+  color: var(--color-blue-deep);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-diagonally a:hover {
+  color: var(--color-blue-primary);
+}
+
+.prose-diagonally blockquote {
+  border-left: 2px solid oklch(0.795 0.157 86.047 / 0.4);
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: oklch(0.279 0.041 260 / 0.7);
+}
+
+.prose-diagonally pre {
+  background: var(--color-space-deep);
+  color: var(--color-text-light);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.prose-diagonally code {
+  background: oklch(0.279 0.041 260 / 0.05);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.875em;
+  font-family: var(--font-mono);
+}
+
+.prose-diagonally pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.prose-diagonally ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.prose-diagonally ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.prose-diagonally li {
+  margin-bottom: 0.375rem;
+}
+
+.prose-diagonally table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.prose-diagonally th,
+.prose-diagonally td {
+  border: 1px solid oklch(0.279 0.041 260 / 0.1);
+  padding: 0.625rem 1rem;
+  text-align: left;
+}
+
+.prose-diagonally th {
+  background: var(--color-cream-dark);
+  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+}
+
+.prose-diagonally img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.prose-diagonally hr {
+  border: none;
+  border-top: 1px solid oklch(0.279 0.041 260 / 0.1);
+  margin: 2rem 0;
+}
+
+.prose-diagonally mark {
+  background-color: oklch(0.795 0.157 86.047 / 0.2);
+  border-radius: 0.125rem;
+  padding: 0.0625rem 0.25rem;
+}
+
+.prose-diagonally figure {
+  margin: 1.5rem 0;
+}
+
+.prose-diagonally figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: oklch(0.279 0.041 260 / 0.5);
+  margin-top: 0.5rem;
+}

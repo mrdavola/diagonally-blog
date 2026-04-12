@@ -72,6 +72,7 @@ export interface PostDocument {
   // Computed
   wordCount: number
   readTimeMinutes: number
+  viewCount: number
 
   // Template
   templateId?: string
