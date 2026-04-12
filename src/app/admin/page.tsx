@@ -20,9 +20,9 @@ interface DashboardStats {
 
 function StatSkeleton() {
   return (
-    <div className="bg-space-mid rounded-xl p-6 border border-white/10 animate-pulse">
-      <div className="h-3 w-20 bg-white/10 rounded mb-4" />
-      <div className="h-8 w-16 bg-white/10 rounded" />
+    <div className="bg-admin-surface-raised rounded-xl p-6 border border-admin-border animate-pulse">
+      <div className="h-3 w-20 bg-white/8 rounded mb-4" />
+      <div className="h-7 w-16 bg-white/8 rounded" />
     </div>
   )
 }
@@ -31,12 +31,12 @@ function TopPostsSkeleton() {
   return (
     <div className="animate-pulse space-y-3">
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center justify-between py-3 border-b border-white/5">
+        <div key={i} className="flex items-center justify-between py-3 border-b border-admin-border-subtle">
           <div className="flex items-center gap-3">
-            <div className="h-3 w-4 bg-white/10 rounded" />
-            <div className="h-3 w-48 bg-white/10 rounded" />
+            <div className="h-3 w-4 bg-white/8 rounded" />
+            <div className="h-3 w-48 bg-white/8 rounded" />
           </div>
-          <div className="h-3 w-16 bg-white/10 rounded" />
+          <div className="h-3 w-16 bg-white/8 rounded" />
         </div>
       ))}
     </div>
@@ -45,10 +45,10 @@ function TopPostsSkeleton() {
 
 function DraftCardSkeleton() {
   return (
-    <div className="bg-space-mid rounded-xl p-5 border border-white/10 animate-pulse">
-      <div className="h-4 w-3/4 bg-white/10 rounded mb-3" />
-      <div className="h-3 w-1/2 bg-white/10 rounded mb-4" />
-      <div className="h-7 w-16 bg-white/10 rounded" />
+    <div className="bg-admin-surface-raised rounded-xl p-5 border border-admin-border animate-pulse">
+      <div className="h-4 w-3/4 bg-white/8 rounded mb-3" />
+      <div className="h-3 w-1/2 bg-white/8 rounded mb-4" />
+      <div className="h-7 w-16 bg-white/8 rounded" />
     </div>
   )
 }
@@ -57,11 +57,11 @@ function DraftCardSkeleton() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-space-mid rounded-xl p-6 border border-white/10">
-      <p className="text-sm text-text-light/50 mt-1">{label}</p>
-      <p className="font-display text-3xl font-bold text-white mt-2">
+    <div className="bg-admin-surface-raised rounded-xl p-6 border border-admin-border">
+      <p className="font-display text-2xl font-bold text-white">
         {value.toLocaleString()}
       </p>
+      <p className="text-xs text-text-light/35 uppercase tracking-wider mt-1">{label}</p>
     </div>
   )
 }
@@ -148,7 +148,7 @@ export default function AdminDashboardPage() {
       {/* ── Top Posts ── */}
       <div className="mb-10">
         <h2 className="font-display text-lg text-white mb-4">Top Posts by Views</h2>
-        <div className="bg-space-mid rounded-xl border border-white/10 px-6 py-2">
+        <div className="bg-admin-surface-raised rounded-xl border border-admin-border px-6 py-2">
           {loading ? (
             <TopPostsSkeleton />
           ) : topPosts.length === 0 ? (
@@ -160,19 +160,19 @@ export default function AdminDashboardPage() {
                 <Link
                   key={post.slug}
                   href={`/admin/posts/${post.slug}`}
-                  className="flex items-center justify-between py-3 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-6 px-6 transition"
+                  className="flex items-center justify-between py-3 border-b border-admin-border-subtle last:border-0 hover:bg-white/3 -mx-6 px-6 transition"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-text-light/30 text-sm w-5 shrink-0">{i + 1}.</span>
-                    <span className="text-text-light text-sm truncate">
+                    <span className="text-text-light/25 text-sm font-mono w-6 shrink-0">{i + 1}</span>
+                    <span className="text-text-light/80 text-sm truncate hover:text-white transition-colors">
                       {truncate(post.title || "Untitled", 60)}
                     </span>
                   </div>
                   <div className="flex items-center gap-4 shrink-0 ml-4">
-                    <span className="text-text-light/40 text-xs hidden sm:block">
+                    <span className="text-text-light/30 text-xs hidden sm:block">
                       {formatDate(post.publishedAt)}
                     </span>
-                    <span className="text-text-light/60 text-sm">
+                    <span className="text-text-light/35 text-xs text-right">
                       {views.toLocaleString()} views
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
             {recentDrafts.map((post) => (
               <div
                 key={post.slug}
-                className="bg-space-mid rounded-xl p-5 border border-white/10 flex flex-col"
+                className="bg-admin-surface-raised rounded-xl p-5 border border-admin-border flex flex-col"
               >
                 <p className="text-text-light text-sm font-medium leading-snug mb-1 line-clamp-2">
                   {post.title || "Untitled"}
@@ -210,7 +210,7 @@ export default function AdminDashboardPage() {
                 </p>
                 <Link
                   href={`/admin/posts/${post.slug}`}
-                  className="mt-auto self-start text-xs font-medium text-blue-primary hover:text-text-light border border-white/10 hover:border-white/20 rounded-lg px-3 py-1.5 transition"
+                  className="mt-auto self-start text-xs font-medium text-blue-primary hover:text-text-light border border-admin-border hover:border-admin-border rounded-lg px-3 py-1.5 transition"
                 >
                   Edit
                 </Link>
