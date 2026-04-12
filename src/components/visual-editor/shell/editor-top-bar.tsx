@@ -1,6 +1,6 @@
 "use client"
 
-import { Monitor, Paintbrush, Redo2, Smartphone, Tablet, Undo2 } from "lucide-react"
+import { List, Monitor, Paintbrush, Redo2, Smartphone, Tablet, Undo2 } from "lucide-react"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
 import type { Viewport } from "@/lib/visual-editor/types"
 
@@ -28,6 +28,10 @@ export function EditorTopBar({ onExit, onSave }: EditorTopBarProps) {
   const activePanel  = useEditorStore(s => s.activePanel)
 
   const isSaved = saveStatus === "saved"
+
+  function handleSectionList() {
+    setActivePanel(activePanel === "section-list" ? null : "section-list")
+  }
 
   function handleGlobalStyles() {
     setActivePanel(activePanel === "global-styles" ? null : "global-styles")
@@ -104,6 +108,19 @@ export function EditorTopBar({ onExit, onSave }: EditorTopBarProps) {
 
         {/* Divider */}
         <div className="w-px h-5 bg-gray-200 mx-1" />
+
+        {/* Sections list */}
+        <button
+          onClick={handleSectionList}
+          title="Sections"
+          className={`h-7 w-7 flex items-center justify-center rounded transition-colors ${
+            activePanel === "section-list"
+              ? "bg-gray-900 text-white"
+              : "hover:bg-gray-100 text-gray-600"
+          }`}
+        >
+          <List size={15} />
+        </button>
 
         {/* Global styles */}
         <button

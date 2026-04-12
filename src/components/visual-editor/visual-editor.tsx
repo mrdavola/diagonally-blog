@@ -10,6 +10,7 @@ import { ViewportFrame } from "./shell/viewport-frame"
 import { PropertyPanel } from "./panels/property-panel"
 import { SectionPanel } from "./panels/section-panel"
 import { BlockInserter } from "./inserters/block-inserter"
+import { SectionListPanel } from "./panels/section-list-panel"
 
 interface VisualEditorProps {
   slug: string
@@ -184,6 +185,14 @@ export function VisualEditor({ slug }: VisualEditorProps) {
               onClose={handleClosePanel}
             />
           </div>
+        )}
+
+        {/* Section list panel */}
+        {activePanel === "section-list" && (
+          <SectionListPanel
+            onClose={handleClosePanel}
+            onAddSection={() => useEditorStore.getState().setActivePanel("section-inserter")}
+          />
         )}
       </div>
     </div>
