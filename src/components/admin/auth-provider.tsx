@@ -9,8 +9,9 @@ import {
   onAuthStateChanged,
 } from "firebase/auth"
 import { auth } from "@/lib/firebase"
-import { ADMIN_EMAILS, ROLE_PERMISSIONS } from "@/lib/admin-config"
+import { ROLE_PERMISSIONS } from "@/lib/admin-config"
 import type { Role } from "@/lib/admin-config"
+import { getUserRole } from "@/lib/admins"
 
 interface AuthContextType {
   user: User | null
@@ -29,10 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<Role | null>(null)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       if (firebaseUser?.email) {
-        const userRole = ADMIN_EMAILS[firebaseUser.email] ?? null
+        const userRole = await getUserRole(firebaseUser.email)
         setRole(userRole)
       } else {
         setRole(null)
