@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import Image from "next/image"
 import { listPosts } from "@/lib/posts"
 import type { PostDocument } from "@/lib/blocks/types"
 
@@ -21,109 +22,142 @@ const CATEGORIES = [
   "Product Updates",
 ]
 
-const FEATURED_POST = {
-  slug: "why-we-build-in-public",
-  category: "Build-in-Public",
-  title: "Why We Build Diagonally in Public — and What We've Learned So Far",
-  excerpt:
-    "From prototype to pilot in 30 days. We share everything: our wins, our failures, and the unexpected lessons from watching 11 kids build math games.",
-  author: "Mike Chen",
-  date: "April 3, 2026",
+const CATEGORY_BG: Record<string, string> = {
+  "Build-in-Public": "bg-blue-primary/10",
+  "Learner Stories": "bg-emerald/10",
+  "Education": "bg-gold/10",
+  "Product Updates": "bg-blue-deep/10",
 }
 
-const POSTS = [
-  {
-    slug: "11-learners-one-challenge",
-    category: "Learner Stories",
-    title: "11 Learners, One Challenge: What Happened When We Let Students Choose",
-    excerpt:
-      "We gave learners one rule: pick a math concept and build a game. What happened next surprised everyone in the room.",
-    author: "Barbara Kinoti",
-    date: "March 28, 2026",
-    gradient: "from-blue-primary/20 to-emerald/20",
-  },
-  {
-    slug: "480-standards-one-galaxy",
-    category: "Product Updates",
-    title: "480 Standards, One Galaxy: Building the Math Concept Map",
-    excerpt:
-      "How we visualized every Common Core math standard as a navigable 3D star map — and why spatial metaphors matter for learner agency.",
-    author: "Scott Yeoman",
-    date: "March 20, 2026",
-    gradient: "from-gold/20 to-blue-primary/20",
-  },
-  {
-    slug: "project-based-learning-research",
-    category: "Education",
-    title: "The Research Behind Project-Based Learning in Math",
-    excerpt:
-      "Decades of studies point in the same direction: students who build, create, and teach learn more deeply. Here's what the evidence says.",
-    author: "Barbara Kinoti",
-    date: "March 15, 2026",
-    gradient: "from-emerald/20 to-gold/20",
-  },
-  {
-    slug: "ai-game-builder-v1",
-    category: "Build-in-Public",
-    title: "Shipping the AI Game Builder: What We Got Right and Wrong",
-    excerpt:
-      "Version 1 of our AI game builder launched on March 17th. Here's an honest post-mortem on what worked, what broke, and what we'd do differently.",
-    author: "Mike Chen",
-    date: "March 18, 2026",
-    gradient: "from-blue-primary/20 to-gold/20",
-  },
-  {
-    slug: "ownership-moment",
-    category: "Learner Stories",
-    title: "The Ownership Moment: When a Learner Debugs Their Own Game",
-    excerpt:
-      "One learner iterated six times with the AI to fix her game before running out of time. She didn't ask for help. She just kept going.",
-    author: "Scott Yeoman",
-    date: "March 27, 2026",
-    gradient: "from-emerald/20 to-blue-primary/20",
-  },
-  {
-    slug: "wayfinder-prototype",
-    category: "Build-in-Public",
-    title: "Wayfinder 1.0: Our First Prototype and What We Learned",
-    excerpt:
-      "The very first version of Diagonally was called Wayfinder. It launched on March 7th. Here's everything we shipped and everything we scrapped.",
-    author: "Mike Chen",
-    date: "March 8, 2026",
-    gradient: "from-gold/20 to-emerald/20",
-  },
-]
+function categoryBg(category: string): string {
+  return CATEGORY_BG[category] ?? "bg-blue-primary/10"
+}
+
+function formatDate(date: Date | null): string {
+  if (!date) return ""
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl shadow-soft-sm overflow-hidden animate-pulse">
+      <div className="aspect-video bg-text-dark/8" />
+      <div className="p-6 space-y-3">
+        <div className="h-4 w-24 bg-text-dark/8 rounded-full" />
+        <div className="h-5 bg-text-dark/8 rounded-lg w-full" />
+        <div className="h-5 bg-text-dark/8 rounded-lg w-4/5" />
+        <div className="h-4 bg-text-dark/8 rounded-lg w-full mt-1" />
+        <div className="h-4 bg-text-dark/8 rounded-lg w-3/4" />
+        <div className="pt-4 border-t border-text-dark/5 flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-text-dark/8 flex-shrink-0" />
+          <div className="h-3 w-36 bg-text-dark/8 rounded-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SkeletonFeatured() {
+  return (
+    <div className="bg-white rounded-3xl shadow-soft-md overflow-hidden animate-pulse">
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="aspect-video md:aspect-auto min-h-64 bg-text-dark/8" />
+        <div className="p-8 md:p-12 flex flex-col justify-center gap-4">
+          <div className="h-5 w-28 bg-text-dark/8 rounded-full" />
+          <div className="h-7 bg-text-dark/8 rounded-lg w-full" />
+          <div className="h-7 bg-text-dark/8 rounded-lg w-4/5" />
+          <div className="h-4 bg-text-dark/8 rounded-lg w-full" />
+          <div className="h-4 bg-text-dark/8 rounded-lg w-full" />
+          <div className="h-4 bg-text-dark/8 rounded-lg w-2/3" />
+          <div className="pt-6 border-t border-text-dark/5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-text-dark/8 flex-shrink-0" />
+            <div className="h-3 w-40 bg-text-dark/8 rounded-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Blog Card ────────────────────────────────────────────────────────────────
 
 function BlogCard({
   post,
   index,
 }: {
-  post: (typeof POSTS)[0]
+  post: PostDocument
   index: number
 }) {
+  const authorName = post.authorIds[0] || "Diagonally Team"
+  const authorInitial = authorName[0]?.toUpperCase() ?? "D"
+
   return (
     <motion.div
       {...fadeUp(index * 0.08)}
       className="bg-white rounded-2xl shadow-soft-sm overflow-hidden hover:shadow-soft-md transition-shadow duration-300"
     >
       <Link href={`/blog/${post.slug}`} className="block">
-        <div
-          className={`bg-gradient-to-br ${post.gradient} aspect-video`}
-        />
+        {/* Card image / placeholder */}
+        <div className="aspect-video relative overflow-hidden">
+          {post.coverImage ? (
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className={`w-full h-full ${categoryBg(post.category)}`} />
+          )}
+        </div>
+
         <div className="p-6">
           <span className="inline-block bg-blue-primary/10 text-blue-primary text-xs font-semibold px-3 py-1 rounded-full">
-            {post.category}
+            {post.category || "Blog"}
           </span>
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {post.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs text-text-dark/50 bg-text-dark/5 px-2 py-0.5 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
           <h3 className="font-display text-lg font-bold text-text-dark mt-3 leading-snug">
             {post.title}
           </h3>
-          <p className="text-sm text-text-dark/70 mt-2 leading-relaxed line-clamp-3">
-            {post.excerpt}
-          </p>
+          {post.excerpt && (
+            <p className="text-sm text-text-dark/70 mt-2 leading-relaxed line-clamp-3">
+              {post.excerpt}
+            </p>
+          )}
+
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-text-dark/5">
-            <div className="w-6 h-6 rounded-full bg-blue-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-blue-primary">{post.author[0]}</span></div>
+            <div className="w-6 h-6 rounded-full bg-blue-primary/15 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-blue-primary">{authorInitial}</span>
+            </div>
             <span className="text-xs text-text-dark/60 font-medium">
-              {post.author} &middot; {post.date}
+              {authorName}
+              {post.readTimeMinutes > 0 && (
+                <> &middot; {post.readTimeMinutes} min read</>
+              )}
+              {post.publishedAt && (
+                <> &middot; {formatDate(post.publishedAt)}</>
+              )}
             </span>
           </div>
         </div>
@@ -132,39 +166,122 @@ function BlogCard({
   )
 }
 
+// ─── Featured Post ────────────────────────────────────────────────────────────
+
+function FeaturedCard({ post }: { post: PostDocument }) {
+  const authorName = post.authorIds[0] || "Diagonally Team"
+  const authorInitial = authorName[0]?.toUpperCase() ?? "D"
+
+  return (
+    <motion.div
+      {...fadeUp(0)}
+      className="bg-white rounded-3xl shadow-soft-md overflow-hidden"
+    >
+      <Link href={`/blog/${post.slug}`} className="block">
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Featured image / placeholder */}
+          <div className="aspect-video md:aspect-auto min-h-64 relative overflow-hidden">
+            {post.coverImage ? (
+              <Image
+                src={post.coverImage}
+                alt={post.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+            ) : (
+              <div className={`w-full h-full ${categoryBg(post.category)}`} />
+            )}
+          </div>
+
+          <div className="p-8 md:p-12 flex flex-col justify-center">
+            <span className="inline-block bg-blue-primary/10 text-blue-primary text-xs font-semibold px-3 py-1 rounded-full w-fit">
+              {post.category || "Blog"}
+            </span>
+
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {post.tags.slice(0, 4).map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs text-text-dark/50 bg-text-dark/5 px-2 py-0.5 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <h2 className="font-display text-2xl font-bold text-text-dark mt-4 leading-snug">
+              {post.title}
+            </h2>
+            {post.subtitle && (
+              <p className="text-base text-text-dark/60 mt-1 font-body">{post.subtitle}</p>
+            )}
+            {post.excerpt && (
+              <p className="text-text-dark/70 mt-4 leading-relaxed">
+                {post.excerpt}
+              </p>
+            )}
+
+            <div className="flex items-center gap-3 mt-6 pt-6 border-t border-text-dark/5">
+              <div className="w-8 h-8 rounded-full bg-blue-primary/15 flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-bold text-blue-primary">{authorInitial}</span>
+              </div>
+              <span className="text-sm text-text-dark/60 font-medium">
+                {authorName}
+                {post.readTimeMinutes > 0 && (
+                  <> &middot; {post.readTimeMinutes} min read</>
+                )}
+                {post.publishedAt && (
+                  <> &middot; {formatDate(post.publishedAt)}</>
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  )
+}
+
+// ─── Main Export ──────────────────────────────────────────────────────────────
+
 export default function BlogContent() {
   const [activeCategory, setActiveCategory] = useState("All")
-  const [firestorePosts, setFirestorePosts] = useState<PostDocument[] | null>(null)
+  const [posts, setPosts] = useState<PostDocument[] | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     listPosts()
-      .then((posts) => {
-        if (posts.length > 0) setFirestorePosts(posts)
+      .then((fetched) => {
+        const published = fetched.filter((p) => p.status === "published")
+        setPosts(published)
       })
-      .catch(() => {})
+      .catch(() => {
+        setPosts([])
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
-
-  // If Firestore has published posts, use those; otherwise use hardcoded placeholders
-  const allPosts = firestorePosts
-    ? firestorePosts
-        .filter((p) => p.status === "published")
-        .map((p) => ({
-          slug: p.slug,
-          category: p.category || "Build-in-Public",
-          title: p.title,
-          excerpt: p.excerpt || "",
-          author: p.authorIds[0] || "Diagonally Team",
-          date: p.publishedAt
-            ? new Date(p.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-            : "",
-          gradient: "from-blue-primary/20 to-emerald/20",
-        }))
-    : POSTS
 
   const filteredPosts =
     activeCategory === "All"
-      ? allPosts
-      : allPosts.filter((p) => p.category === activeCategory)
+      ? (posts ?? [])
+      : (posts ?? []).filter((p) => p.category === activeCategory)
+
+  // Only show categories that have at least one post
+  const availableCategories = posts
+    ? ["All", ...CATEGORIES.slice(1).filter((cat) =>
+        posts.some((p) => p.category === cat)
+      )]
+    : CATEGORIES
+
+  const featuredPost = posts && posts.length > 0 ? posts[0] : null
+  const gridPosts = posts && posts.length > 1 ? filteredPosts.slice(activeCategory === "All" ? 1 : 0) : filteredPosts
 
   return (
     <>
@@ -189,33 +306,11 @@ export default function BlogContent() {
       {/* Featured Post */}
       <section className="bg-white py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <motion.div
-            {...fadeUp(0)}
-            className="bg-white rounded-3xl shadow-soft-md overflow-hidden"
-          >
-            <Link href={`/blog/${FEATURED_POST.slug}`} className="block">
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                <div className="bg-gradient-to-br from-blue-primary/20 to-emerald/20 aspect-video md:aspect-auto min-h-64" />
-                <div className="p-8 md:p-12 flex flex-col justify-center">
-                  <span className="inline-block bg-blue-primary/10 text-blue-primary text-xs font-semibold px-3 py-1 rounded-full w-fit">
-                    {FEATURED_POST.category}
-                  </span>
-                  <h2 className="font-display text-2xl font-bold text-text-dark mt-4 leading-snug">
-                    {FEATURED_POST.title}
-                  </h2>
-                  <p className="text-text-dark/70 mt-4 leading-relaxed">
-                    {FEATURED_POST.excerpt}
-                  </p>
-                  <div className="flex items-center gap-3 mt-6 pt-6 border-t border-text-dark/5">
-                    <div className="w-8 h-8 rounded-full bg-blue-primary/15 flex items-center justify-center flex-shrink-0"><span className="text-sm font-bold text-blue-primary">{FEATURED_POST.author[0]}</span></div>
-                    <span className="text-sm text-text-dark/60 font-medium">
-                      {FEATURED_POST.author} &middot; {FEATURED_POST.date}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </motion.div>
+          {loading ? (
+            <SkeletonFeatured />
+          ) : featuredPost ? (
+            <FeaturedCard post={featuredPost} />
+          ) : null}
         </div>
       </section>
 
@@ -227,7 +322,7 @@ export default function BlogContent() {
             {...fadeUp(0)}
             className="flex flex-wrap gap-3 mb-12"
           >
-            {CATEGORIES.map((cat) => (
+            {availableCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -243,11 +338,33 @@ export default function BlogContent() {
           </motion.div>
 
           {/* Post Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post, i) => (
-              <BlogCard key={post.slug} post={post} index={i} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : gridPosts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {gridPosts.map((post, i) => (
+                <BlogCard key={post.slug} post={post} index={i} />
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              {...fadeUp(0)}
+              className="text-center py-24"
+            >
+              <p className="font-display text-2xl font-bold text-text-dark/40">
+                No posts yet
+              </p>
+              <p className="text-text-dark/40 mt-2 text-sm">
+                {activeCategory !== "All"
+                  ? `No posts in "${activeCategory}" yet.`
+                  : "Check back soon."}
+              </p>
+            </motion.div>
+          )}
         </div>
       </section>
     </>
