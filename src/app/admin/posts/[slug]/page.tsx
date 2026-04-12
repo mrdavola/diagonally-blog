@@ -130,6 +130,7 @@ export default function PostEditorPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [generatingPreview, setGeneratingPreview] = useState(false)
   const [previewCopied, setPreviewCopied] = useState(false)
+  const [emailOnPublish, setEmailOnPublish] = useState(false)
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const currentSlug = (post.slug ?? slugParam) as string
@@ -275,7 +276,12 @@ export default function PostEditorPage() {
       setPost((prev) => ({ ...prev, status: "published" }))
       setLastSaved(new Date())
       setDirty(false)
-      showToast("Published!")
+      showToast(emailOnPublish ? "Published! (Email campaign coming soon)" : "Published!")
+      // TODO: when Loops email campaigns are configured, trigger a campaign
+      // send here if emailOnPublish is true. Example:
+      //   if (emailOnPublish) {
+      //     await fetch("/api/email-campaign", { method: "POST", body: JSON.stringify({ slug }) })
+      //   }
     } catch (err) {
       console.error(err)
       showToast("Publish failed. Please try again.")
@@ -575,6 +581,30 @@ export default function PostEditorPage() {
             <LayoutTemplate className="w-4 h-4" />
             <span className="hidden sm:inline">Save as Template</span>
           </button>
+
+          {/* Email-on-publish toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none" title="Email subscribers on publish (campaign send coming soon)">
+            <input
+              type="checkbox"
+              checked={emailOnPublish}
+              onChange={(e) => setEmailOnPublish(e.target.checked)}
+              className="sr-only"
+            />
+            <div
+              className={`w-8 h-4 rounded-full transition-colors ${
+                emailOnPublish ? "bg-blue-600" : "bg-white/20"
+              } relative`}
+            >
+              <div
+                className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-transform ${
+                  emailOnPublish ? "translate-x-4" : "translate-x-0.5"
+                }`}
+              />
+            </div>
+            <span className="text-xs text-text-light/60 hidden sm:block whitespace-nowrap">
+              Email subscribers
+            </span>
+          </label>
 
           <button
             onClick={handlePublish}

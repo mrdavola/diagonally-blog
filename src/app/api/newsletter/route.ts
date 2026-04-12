@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { syncSubscriber } from "@/lib/loops"
 
 export async function POST(request: Request) {
   const body = await request.json()
@@ -13,7 +14,10 @@ export async function POST(request: Request) {
   }
 
   // Firestore write happens client-side via addNewsletterSubscriber()
-  // This route exists for server-side validation
+  // This route exists for server-side validation + Loops sync
+
+  // Sync to Loops — fire-and-forget, don't let failure break signup
+  syncSubscriber(email).catch(() => {})
 
   return NextResponse.json({ success: true, message: "Subscribed successfully" })
 }
