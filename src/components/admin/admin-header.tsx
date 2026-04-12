@@ -9,9 +9,12 @@ const ROUTE_LABELS: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/pages": "Pages",
   "/admin/posts": "Posts",
+  "/admin/templates": "Templates",
   "/admin/authors": "Authors",
+  "/admin/subscribers": "Subscribers",
   "/admin/submissions": "Submissions",
   "/admin/settings": "Settings",
+  "/admin/migrate": "Migrate",
 }
 
 function getPageTitle(pathname: string): string {
@@ -30,7 +33,7 @@ export function AdminHeader() {
   const title = getPageTitle(pathname)
 
   return (
-    <header className="sticky top-0 z-10 bg-space-mid border-b border-white/10 h-14 flex items-center justify-between px-4 flex-shrink-0">
+    <header className="sticky top-0 z-10 bg-admin-surface-raised border-b border-admin-border-subtle h-14 flex items-center justify-between px-4 flex-shrink-0">
       {/* Left: hamburger (mobile) + page title */}
       <div className="flex items-center gap-3">
         <button
@@ -39,7 +42,7 @@ export function AdminHeader() {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <h2 className="font-display text-white font-semibold text-base">
+        <h2 className="font-display text-white/90 font-semibold text-sm tracking-wide">
           {title}
         </h2>
       </div>
@@ -50,7 +53,7 @@ export function AdminHeader() {
           onClick={() => setDropdownOpen((prev) => !prev)}
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-text-light/70 hover:text-white hover:bg-white/5 transition"
         >
-          <div className="w-7 h-7 rounded-full bg-blue-primary flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-7 h-7 rounded-full bg-blue-deep/60 flex items-center justify-center text-white text-xs font-bold">
             {user?.email?.[0]?.toUpperCase() ?? "?"}
           </div>
           <span className="hidden sm:block text-sm max-w-[120px] truncate">
@@ -66,7 +69,7 @@ export function AdminHeader() {
               className="fixed inset-0 z-10"
               onClick={() => setDropdownOpen(false)}
             />
-            <div className="absolute right-0 top-full mt-1 z-20 bg-space-deep border border-white/10 rounded-xl shadow-lg py-1 min-w-[140px]">
+            <div className="absolute right-0 top-full mt-1 z-20 bg-admin-surface-overlay border border-admin-border rounded-xl shadow-lg py-1 min-w-[140px]">
               <button
                 onClick={() => {
                   setDropdownOpen(false)
