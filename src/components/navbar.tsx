@@ -60,17 +60,24 @@ export function Navbar() {
       setScrolled(window.scrollY > 50);
       detectBackground();
     };
-    detectBackground();
+    // Detect after paint so the hero background is rendered
+    const raf = requestAnimationFrame(() => detectBackground());
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [detectBackground]);
 
   // Re-detect on route changes (new page may have different background)
   useEffect(() => {
     setScrolled(false);
-    // Small delay to let the new page render before sampling
-    const timeout = setTimeout(detectBackground, 50);
-    return () => clearTimeout(timeout);
+    // Wait for the new page to paint before sampling background
+    const raf = requestAnimationFrame(() => {
+      // Extra frame to ensure styles/images are applied
+      requestAnimationFrame(() => detectBackground());
+    });
+    return () => cancelAnimationFrame(raf);
   }, [pathname, detectBackground]);
 
   const isDark = onDark;
@@ -97,7 +104,7 @@ export function Navbar() {
               className={`hover:text-blue-deep transition-colors duration-200 text-sm font-medium ${
                 !onDark
                   ? "text-text-dark"
-                  : "text-white/80"
+                  : "text-white"
               }`}
             >
               {link.label}
