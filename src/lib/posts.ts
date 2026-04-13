@@ -64,6 +64,14 @@ function docToPost(data: Record<string, unknown>, slug: string): PostDocument {
   }
 }
 
+function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) result[key] = value
+  }
+  return result
+}
+
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export async function listPosts(category?: string): Promise<PostDocument[]> {
@@ -92,7 +100,7 @@ export async function savePost(
 
   if (snap.exists()) {
     await updateDoc(ref, {
-      ...rest,
+      ...stripUndefined(rest as Record<string, unknown>),
       updatedAt: serverTimestamp(),
     })
   } else {

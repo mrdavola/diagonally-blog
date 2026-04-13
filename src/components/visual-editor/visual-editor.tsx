@@ -174,7 +174,7 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-screen flex-col">
       <EditorTopBar
         onExit={() => router.push("/admin/pages")}
         onSave={handleManualSave}

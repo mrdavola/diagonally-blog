@@ -107,7 +107,7 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
   const isConstrained = targetWidth !== "full"
 
   return (
-    <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center py-4">
+    <div className="flex-1 overflow-auto bg-gray-100 flex items-start justify-center py-4 h-full">
       <div
         style={{
           width: isConstrained ? targetWidth : "100%",
@@ -122,7 +122,7 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
         <iframe
           ref={iframeRef}
           src={`/editor-canvas/${slug}`}
-          style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+          style={{ width: "100%", height: "100%", minHeight: "100%", border: "none", display: "block" }}
           title="Editor canvas"
         />
       </div>

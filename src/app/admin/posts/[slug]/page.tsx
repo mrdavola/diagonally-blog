@@ -700,8 +700,14 @@ export default function PostEditorPage() {
             <div>
               <label className={labelClass}>Category</label>
               <select
-                value={post.category ?? ""}
-                onChange={(e) => update({ category: e.target.value })}
+                value={CATEGORIES.some(c => c.value === post.category) ? (post.category ?? "") : "__custom__"}
+                onChange={(e) => {
+                  if (e.target.value === "__custom__") {
+                    update({ category: "" })
+                  } else {
+                    update({ category: e.target.value })
+                  }
+                }}
                 className={`${inputClass} bg-white/5`}
               >
                 <option value="">Select category…</option>
@@ -710,7 +716,17 @@ export default function PostEditorPage() {
                     {c.label}
                   </option>
                 ))}
+                <option value="__custom__">+ Custom category…</option>
               </select>
+              {(!post.category || !CATEGORIES.some(c => c.value === post.category)) && (
+                <input
+                  type="text"
+                  placeholder="Enter custom category…"
+                  value={CATEGORIES.some(c => c.value === post.category) ? "" : (post.category ?? "")}
+                  onChange={(e) => update({ category: e.target.value })}
+                  className={`${inputClass} mt-2`}
+                />
+              )}
             </div>
 
             {/* Tags */}

@@ -10,7 +10,7 @@ interface PageEditorRouteProps {
 export default function PageEditorRoute({ params }: PageEditorRouteProps) {
   const { slug } = use(params)
   return (
-    <div className="-m-6 h-[calc(100vh)]">
+    <div className="fixed inset-0 z-50 bg-white">
       <VisualEditor slug={slug} />
     </div>
   )
