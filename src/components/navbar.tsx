@@ -7,12 +7,44 @@ import { Menu } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { NAV_LINKS } from "@/lib/constants";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+type NavLink = { label: string; href: string }
 
 export function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [onDark, setOnDark] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navLinks, setNavLinks] = useState<NavLink[]>(NAV_LINKS);
+
+  useEffect(() => {
+    async function loadNav() {
+      try {
+        const snap = await getDocs(
+          query(
+            collection(db, "pages"),
+            where("showInNav", "==", true),
+            orderBy("navOrder")
+          )
+        );
+        const links: NavLink[] = snap.docs.map((d) => {
+          const data = d.data() as { navLabel?: string; title?: string };
+          return {
+            label: data.navLabel || data.title || d.id,
+            href: d.id === "home" ? "/" : `/${d.id}`,
+          };
+        });
+        // Always include Blog as a hardcoded entry
+        links.push({ label: "Blog", href: "/blog" });
+        if (links.length > 0) setNavLinks(links);
+      } catch {
+        // Fall back to hardcoded NAV_LINKS on error
+      }
+    }
+    loadNav();
+  }, []);
 
   const detectBackground = useCallback(() => {
     const navHeight = 64;
@@ -150,7 +182,7 @@ export function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden lg:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -194,7 +226,7 @@ export function Navbar() {
               </div>
 
               <nav className="flex flex-col gap-2 flex-1">
-                {NAV_LINKS.map((link) => (
+                {navLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}

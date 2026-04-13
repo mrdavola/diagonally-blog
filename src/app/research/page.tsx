@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import FirestorePageWrapper from "@/components/firestore-page-wrapper"
 import ResearchContent from "@/components/pages/research-content"
 
 export const metadata: Metadata = {
@@ -22,5 +23,7 @@ export const metadata: Metadata = {
 }
 
 export default function ResearchPage() {
-  return <ResearchContent />
+  return (
+    <FirestorePageWrapper slug="research" fallback={<ResearchContent />} loadingBg="bg-cream" />
+  )
 }

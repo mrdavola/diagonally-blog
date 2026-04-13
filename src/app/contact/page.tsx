@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import FirestorePageWrapper from "@/components/firestore-page-wrapper"
 import ContactContent from "@/components/pages/contact-content"
 
 export const metadata: Metadata = {
@@ -19,5 +20,7 @@ export const metadata: Metadata = {
 }
 
 export default function ContactPage() {
-  return <ContactContent />
+  return (
+    <FirestorePageWrapper slug="contact" fallback={<ContactContent />} loadingBg="bg-cream" />
+  )
 }

@@ -3,23 +3,32 @@
 import { useState, useEffect } from "react"
 import PageRenderer from "@/components/page-renderer"
 import { getPublishedPageData } from "@/lib/visual-editor/firestore"
-import HomeContent from "@/components/pages/home-content"
 import type { PublishedPageData } from "@/lib/visual-editor/firestore"
 
-export default function HomePage() {
+interface FirestorePageWrapperProps {
+  slug: string
+  fallback: React.ReactNode
+  loadingBg?: string
+}
+
+export default function FirestorePageWrapper({
+  slug,
+  fallback,
+  loadingBg = "bg-cream",
+}: FirestorePageWrapperProps) {
   const [pageData, setPageData] = useState<PublishedPageData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getPublishedPageData("home")
+    getPublishedPageData(slug)
       .then((data) => {
         setPageData(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [slug])
 
-  if (loading) return <div className="min-h-screen bg-space-deep" />
+  if (loading) return <div className={`min-h-screen ${loadingBg}`} />
 
   if (pageData?.publishedSections && pageData.publishedSections.length > 0) {
     return (
@@ -30,5 +39,5 @@ export default function HomePage() {
     )
   }
 
-  return <HomeContent />
+  return <>{fallback}</>
 }

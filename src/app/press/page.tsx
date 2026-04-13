@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import FirestorePageWrapper from "@/components/firestore-page-wrapper"
 import PressContent from "@/components/pages/press-content"
 
 export const metadata: Metadata = {
@@ -22,5 +23,7 @@ export const metadata: Metadata = {
 }
 
 export default function PressPage() {
-  return <PressContent />
+  return (
+    <FirestorePageWrapper slug="press" fallback={<PressContent />} loadingBg="bg-cream" />
+  )
 }
