@@ -47,6 +47,7 @@ function InlineEditor({ block, sectionId, onStop }: InlineEditorProps) {
     ],
     content,
     autofocus: true,
+    immediatelyRender: false,
     onUpdate({ editor: ed }) {
       sendToParent({
         type: "CONTENT_CHANGED",
@@ -105,7 +106,7 @@ function InlineEditor({ block, sectionId, onStop }: InlineEditorProps) {
       )}
       <div
         ref={containerRef}
-        className="prose prose-lg max-w-none"
+        className="prose-diagonally max-w-none"
         style={{ outline: "none", cursor: "text" }}
       >
         <EditorContent editor={editor} />
@@ -138,7 +139,8 @@ export function TextBlock({ block }: TextBlockProps) {
 
   return (
     <div
-      className="prose prose-lg max-w-none"
+      className="prose-diagonally max-w-none"
+      style={{ fontFamily: "var(--site-body-font, inherit)" }}
       dangerouslySetInnerHTML={{ __html: content }}
     />
   )

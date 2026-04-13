@@ -1,11 +1,20 @@
 "use client"
 
 import React, { useRef, useEffect } from "react"
-import type { Section, SectionBackground, SectionLayout } from "@/lib/visual-editor/types"
+import type { Section, SectionBackground, SectionLayout, BackgroundPresetId } from "@/lib/visual-editor/types"
 import { ZoneRenderer } from "./zone-renderer"
 import { SectionIdContext } from "@/components/visual-editor/canvas/inline-edit-context"
+import { Constellation } from "@/components/constellation"
 
 // ─── Background helpers ──────────────────────────────────────────────────────
+
+// ─── Preset backgrounds ─────────────────────────────────────────────────────
+
+const PRESET_STYLES: Record<BackgroundPresetId, { bg: string; textClass: string }> = {
+  "space-deep": { bg: "oklch(0.086 0.022 264)", textClass: "text-white" },
+  "space-mid":  { bg: "oklch(0.148 0.022 262)", textClass: "text-white" },
+  "cream":      { bg: "oklch(0.977 0.007 82)",  textClass: "" },
+}
 
 function getBackgroundStyles(bg: SectionBackground): React.CSSProperties {
   switch (bg.type) {
@@ -29,11 +38,81 @@ function getBackgroundStyles(bg: SectionBackground): React.CSSProperties {
       }
     }
     case "video":
-      // Video background is handled by the video element; container is transparent
       return { position: "relative" }
+    case "preset": {
+      const preset = bg.presetId && PRESET_STYLES[bg.presetId]
+      if (!preset) return {}
+      return { backgroundColor: preset.bg }
+    }
     case "none":
     default:
       return {}
+  }
+}
+
+function isPresetDark(bg: SectionBackground): boolean {
+  return bg.type === "preset" && (bg.presetId === "space-deep" || bg.presetId === "space-mid")
+}
+
+// ─── Divider SVGs ───────────────────────────────────────────────────────────
+
+/**
+ * Get the resolved background color for a section (used for divider rendering).
+ */
+function getSectionBgColor(bg: SectionBackground): string {
+  switch (bg.type) {
+    case "color": return bg.color ?? "transparent"
+    case "preset": {
+      if (bg.presetId && PRESET_STYLES[bg.presetId]) return PRESET_STYLES[bg.presetId].bg
+      return "transparent"
+    }
+    default: return "transparent"
+  }
+}
+
+/**
+ * Two-tone section divider: topColor = this section's bg, bottomColor = next section's bg.
+ * Matches the frontend WaveDivider pattern.
+ */
+function SectionDividerSvg({ type, topColor, bottomColor }: { type: string; topColor: string; bottomColor: string }) {
+  switch (type) {
+    case "wave":
+      return (
+        <div className="relative overflow-hidden" aria-hidden="true" style={{ marginTop: -1 }}>
+          <svg viewBox="0 0 1440 100" preserveAspectRatio="none" width="100%" height="80" style={{ display: "block" }}>
+            {/* Top fill */}
+            <rect width="1440" height="55" fill={topColor} />
+            {/* Wave path — bottom color fills from the curve down */}
+            <path d="M0,55 C240,100 480,10 720,55 C960,100 1200,10 1440,55 L1440,100 L0,100 Z" fill={bottomColor} />
+            {/* Smooth wave on top in top color for clean edge */}
+            <path d="M0,55 C240,100 480,10 720,55 C960,100 1200,10 1440,55 L1440,0 L0,0 Z" fill={topColor} />
+          </svg>
+        </div>
+      )
+    case "angle":
+      return (
+        <div className="relative overflow-hidden" aria-hidden="true" style={{ marginTop: -1 }}>
+          <svg viewBox="0 0 1440 60" preserveAspectRatio="none" width="100%" height="60" style={{ display: "block" }}>
+            <rect width="1440" height="30" fill={topColor} />
+            <polygon points="0,0 1440,60 0,60" fill={bottomColor} />
+            <polygon points="0,0 1440,0 1440,60" fill={topColor} />
+          </svg>
+        </div>
+      )
+    case "curve":
+      return (
+        <div className="relative overflow-hidden" aria-hidden="true" style={{ marginTop: -1 }}>
+          <svg viewBox="0 0 1440 60" preserveAspectRatio="none" width="100%" height="60" style={{ display: "block" }}>
+            <rect width="1440" height="30" fill={topColor} />
+            <path d="M0,0 Q720,120 1440,0 L1440,60 L0,60 Z" fill={bottomColor} />
+            <path d="M0,0 Q720,120 1440,0 L1440,0 L0,0 Z" fill={topColor} />
+          </svg>
+        </div>
+      )
+    case "line":
+      return <div className="h-px" style={{ backgroundColor: bottomColor }} aria-hidden="true" />
+    default:
+      return null
   }
 }
 
@@ -159,14 +238,25 @@ export function SectionRenderer({ section }: SectionRendererProps) {
       ? { animationDelay: `${animation.delay}ms` }
       : {}
 
+  const darkPreset = isPresetDark(background)
+  const presetTextClass = background.type === "preset" && background.presetId
+    ? PRESET_STYLES[background.presetId]?.textClass ?? ""
+    : ""
+
   return (
     <SectionIdContext.Provider value={section.id}>
     <section
       ref={sectionRef}
       data-section-id={section.id}
       data-section-label={section.label}
-      style={{ ...sectionStyle, ...animationStyle }}
+      className={presetTextClass || undefined}
+      style={{ ...sectionStyle, ...animationStyle, overflow: "hidden" }}
     >
+      {/* Constellation animation for space-deep preset */}
+      {background.type === "preset" && background.presetId === "space-deep" && (
+        <Constellation className="absolute inset-0" />
+      )}
+
       {/* Background video */}
       {background.type === "video" && background.video && (
         <video
@@ -220,6 +310,16 @@ export function SectionRenderer({ section }: SectionRendererProps) {
         )}
       </div>
     </section>
+
+    {/* Section divider */}
+    {section.divider.type !== "none" && (() => {
+      const sectionBg = getSectionBgColor(background)
+      const topCol = sectionBg !== "transparent" ? sectionBg : (darkPreset ? "#080c18" : "#faf7f2")
+      const bottomCol = section.divider.color && section.divider.color !== "transparent"
+        ? section.divider.color
+        : "#faf7f2"
+      return <SectionDividerSvg type={section.divider.type} topColor={topCol} bottomColor={bottomCol} />
+    })()}
     </SectionIdContext.Provider>
   )
 }

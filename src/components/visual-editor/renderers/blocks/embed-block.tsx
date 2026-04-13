@@ -19,12 +19,12 @@ export function EmbedBlock({ block }: EmbedBlockProps) {
 
   if (url) {
     return (
-      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+      <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
         <iframe
           src={url}
-          className="absolute inset-0 w-full h-full rounded border border-gray-200"
+          className="absolute inset-0 w-full h-full"
           title="Embed"
-          sandbox="allow-scripts allow-same-origin allow-popups"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
         />
       </div>
     )

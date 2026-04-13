@@ -17,6 +17,10 @@ export function CtaBlock({ block }: CtaBlockProps) {
       : "Get started"
   const bgColor =
     typeof block.props.bgColor === "string" ? block.props.bgColor : "#1d4ed8"
+  const buttonHref =
+    typeof block.props.buttonHref === "string" && block.props.buttonHref
+      ? block.props.buttonHref
+      : "#"
 
   return (
     <div
@@ -25,9 +29,13 @@ export function CtaBlock({ block }: CtaBlockProps) {
     >
       <h2 className="text-2xl font-bold text-white">{headline}</h2>
       {subtext && <p className="text-white/80 text-base max-w-md">{subtext}</p>}
-      <span className="inline-block mt-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer">
+      <a
+        href={buttonHref}
+        onClick={(e) => e.preventDefault()}
+        className="inline-block mt-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
+      >
         {buttonLabel}
-      </span>
+      </a>
     </div>
   )
 }

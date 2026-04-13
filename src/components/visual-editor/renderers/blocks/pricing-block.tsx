@@ -14,6 +14,10 @@ export function PricingBlock({ block }: PricingBlockProps) {
     : []
   const cta =
     typeof block.props.cta === "string" ? block.props.cta : "Get started"
+  const ctaHref =
+    typeof block.props.ctaHref === "string" && block.props.ctaHref
+      ? block.props.ctaHref
+      : "#"
   const highlighted = block.props.highlighted === true
 
   return (
@@ -21,8 +25,8 @@ export function PricingBlock({ block }: PricingBlockProps) {
       className={[
         "flex flex-col rounded-xl border p-6 shadow-sm",
         highlighted
-          ? "border-blue-600 bg-blue-600 text-white"
-          : "border-gray-200 bg-white text-gray-900",
+          ? "border-blue-deep bg-blue-deep text-white"
+          : "border-gray-200 bg-white text-text-dark",
       ].join(" ")}
     >
       <div className="mb-4">
@@ -54,16 +58,18 @@ export function PricingBlock({ block }: PricingBlockProps) {
         </ul>
       )}
 
-      <span
+      <a
+        href={ctaHref}
+        onClick={(e) => e.preventDefault()}
         className={[
           "mt-auto block text-center rounded-lg px-5 py-2.5 text-sm font-medium transition-colors",
           highlighted
-            ? "bg-white text-blue-600 hover:bg-blue-50"
-            : "bg-blue-600 text-white hover:bg-blue-700",
+            ? "bg-white text-blue-deep hover:bg-cream"
+            : "bg-blue-deep text-white hover:opacity-80",
         ].join(" ")}
       >
         {cta}
-      </span>
+      </a>
     </div>
   )
 }

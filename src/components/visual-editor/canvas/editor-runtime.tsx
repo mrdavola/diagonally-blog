@@ -86,25 +86,21 @@ function collectInsertPoints(sections: Section[]): InsertPoint[] {
 interface OverlayBoxProps {
   rect: DOMRect
   color: string
-  /** Show resize handles (8-point) — only for block selection */
-  showHandles?: boolean
+  /** Show left/right resize handles for column span */
+  showResizeHandles?: boolean
+  onResizeStart?: (side: "left" | "right", e: React.MouseEvent) => void
   /** Show "Section" label — only for section selection */
   showSectionLabel?: boolean
+  /** Show drag handle for reordering */
+  showDragHandle?: boolean
+  onDragStart?: (e: React.MouseEvent) => void
+  /** Show delete button */
+  showDelete?: boolean
+  onDelete?: () => void
   label?: string
 }
 
-const HANDLE_CURSORS = [
-  { pos: "nw", cursor: "nw-resize", style: { top: -4, left: -4 } },
-  { pos: "n",  cursor: "n-resize",  style: { top: -4, left: "calc(50% - 4px)" } },
-  { pos: "ne", cursor: "ne-resize", style: { top: -4, right: -4 } },
-  { pos: "e",  cursor: "e-resize",  style: { top: "calc(50% - 4px)", right: -4 } },
-  { pos: "se", cursor: "se-resize", style: { bottom: -4, right: -4 } },
-  { pos: "s",  cursor: "s-resize",  style: { bottom: -4, left: "calc(50% - 4px)" } },
-  { pos: "sw", cursor: "sw-resize", style: { bottom: -4, left: -4 } },
-  { pos: "w",  cursor: "w-resize",  style: { bottom: "calc(50% - 4px)", left: -4 } },
-] as const
-
-function OverlayBox({ rect, color, showHandles, showSectionLabel, label }: OverlayBoxProps) {
+function OverlayBox({ rect, color, showResizeHandles, onResizeStart, showSectionLabel, showDragHandle, onDragStart, showDelete, onDelete, label }: OverlayBoxProps) {
   const style: React.CSSProperties = {
     position: "fixed",
     top: rect.top,
@@ -119,48 +115,139 @@ function OverlayBox({ rect, color, showHandles, showSectionLabel, label }: Overl
 
   return (
     <div style={style}>
-      {/* Label */}
+      {/* Label + drag handle */}
       {(showSectionLabel || label) && (
         <div
           style={{
             position: "absolute",
-            top: -22,
+            top: -24,
             left: 0,
-            background: color,
-            color: "#fff",
-            fontSize: 11,
-            fontWeight: 600,
-            padding: "1px 6px",
-            borderRadius: "3px 3px 0 0",
-            whiteSpace: "nowrap",
+            display: "flex",
+            alignItems: "center",
+            gap: 0,
             pointerEvents: "none",
             userSelect: "none",
           }}
         >
-          {label ?? "Section"}
+          {/* Drag handle */}
+          {showDragHandle && (
+            <div
+              onMouseDown={(e) => { e.stopPropagation(); onDragStart?.(e) }}
+              style={{
+                background: color,
+                color: "#fff",
+                padding: "3px 4px",
+                borderRadius: "3px 0 0 0",
+                cursor: "grab",
+                pointerEvents: "all",
+                display: "flex",
+                alignItems: "center",
+                lineHeight: 1,
+              }}
+              title="Drag to reorder"
+            >
+              <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+                <circle cx="3" cy="2" r="1.2" />
+                <circle cx="7" cy="2" r="1.2" />
+                <circle cx="3" cy="7" r="1.2" />
+                <circle cx="7" cy="7" r="1.2" />
+                <circle cx="3" cy="12" r="1.2" />
+                <circle cx="7" cy="12" r="1.2" />
+              </svg>
+            </div>
+          )}
+          {/* Label */}
+          <div
+            style={{
+              background: color,
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "2px 6px",
+              borderRadius: showDragHandle ? "0 3px 0 0" : "3px 3px 0 0",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {label ?? "Section"}
+          </div>
         </div>
       )}
 
-      {/* Resize handles — pointer-events enabled */}
-      {showHandles &&
-        HANDLE_CURSORS.map(({ pos, cursor, style: hStyle }) => (
+      {/* Delete button — top right */}
+      {showDelete && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete?.() }}
+          style={{
+            position: "absolute",
+            top: -24,
+            right: 0,
+            background: "#ef4444",
+            color: "#fff",
+            border: "none",
+            padding: "3px 6px",
+            borderRadius: "3px 3px 0 0",
+            cursor: "pointer",
+            pointerEvents: "all",
+            display: "flex",
+            alignItems: "center",
+            gap: 3,
+            fontSize: 11,
+            fontWeight: 600,
+            lineHeight: 1,
+          }}
+          title="Delete section"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          Delete
+        </button>
+      )}
+
+      {/* Left/right resize handles for column span */}
+      {showResizeHandles && (
+        <>
+          {/* Left edge */}
           <div
-            key={pos}
+            onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onResizeStart?.("left", e) }}
             style={{
               position: "absolute",
+              top: 0,
+              left: -4,
               width: 8,
-              height: 8,
-              background: "#fff",
-              border: `2px solid ${color}`,
-              borderRadius: 1,
-              cursor,
+              height: "100%",
+              cursor: "ew-resize",
               pointerEvents: "all",
               zIndex: 10000,
-              boxSizing: "border-box",
-              ...hStyle,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          />
-        ))}
+          >
+            <div style={{ width: 4, height: 32, maxHeight: "50%", borderRadius: 2, background: color }} />
+          </div>
+          {/* Right edge */}
+          <div
+            onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onResizeStart?.("right", e) }}
+            style={{
+              position: "absolute",
+              top: 0,
+              right: -4,
+              width: 8,
+              height: "100%",
+              cursor: "ew-resize",
+              pointerEvents: "all",
+              zIndex: 10000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div style={{ width: 4, height: 32, maxHeight: "50%", borderRadius: 2, background: color }} />
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -195,6 +282,7 @@ function InsertPointButton({ point }: InsertPointButtonProps) {
         zIndex: 9998,
         pointerEvents: "all",
       }}
+      data-insert-point
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -260,6 +348,96 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
   const rafRef = useRef<number | null>(null)
   const { editingBlockId, startEditing, stopEditing } = useInlineEdit()
   const isTouch = isTouchDevice()
+
+  // ─── Drag-to-reorder state ──────────────────────────────────────────────
+  const [dragging, setDragging] = useState<{ sectionId: string; fromIndex: number } | null>(null)
+  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null)
+  const [dropIndicatorY, setDropIndicatorY] = useState<number | null>(null)
+
+  const handleDragStart = useCallback((e: React.MouseEvent, sectionId: string) => {
+    e.preventDefault()
+    const fromIndex = sections.findIndex(s => s.id === sectionId)
+    if (fromIndex === -1) return
+    setDragging({ sectionId, fromIndex })
+    setDropTargetIndex(null)
+
+    const sectionsCopy = [...sections]
+
+    function findDropIndex(y: number): { idx: number; indicatorY: number | null } {
+      let bestIdx = 0
+      let bestDist = Infinity
+      for (let i = 0; i <= sectionsCopy.length; i++) {
+        let gapY: number
+        if (i === 0) {
+          const el = document.querySelector(`[data-section-id="${sectionsCopy[0]?.id}"]`)
+          gapY = el ? el.getBoundingClientRect().top : 0
+        } else if (i === sectionsCopy.length) {
+          const el = document.querySelector(`[data-section-id="${sectionsCopy[sectionsCopy.length - 1]?.id}"]`)
+          gapY = el ? el.getBoundingClientRect().bottom : 0
+        } else {
+          const prevEl = document.querySelector(`[data-section-id="${sectionsCopy[i - 1]?.id}"]`)
+          const nextEl = document.querySelector(`[data-section-id="${sectionsCopy[i]?.id}"]`)
+          if (prevEl && nextEl) {
+            gapY = (prevEl.getBoundingClientRect().bottom + nextEl.getBoundingClientRect().top) / 2
+          } else {
+            continue
+          }
+        }
+        const dist = Math.abs(y - gapY)
+        if (dist < bestDist) {
+          bestDist = dist
+          bestIdx = i
+        }
+      }
+
+      // Compute indicator Y
+      let indicatorY: number | null = null
+      if (bestIdx === 0) {
+        const el = document.querySelector(`[data-section-id="${sectionsCopy[0]?.id}"]`)
+        indicatorY = el ? el.getBoundingClientRect().top : null
+      } else if (bestIdx === sectionsCopy.length) {
+        const el = document.querySelector(`[data-section-id="${sectionsCopy[sectionsCopy.length - 1]?.id}"]`)
+        indicatorY = el ? el.getBoundingClientRect().bottom : null
+      } else {
+        const prevEl = document.querySelector(`[data-section-id="${sectionsCopy[bestIdx - 1]?.id}"]`)
+        const nextEl = document.querySelector(`[data-section-id="${sectionsCopy[bestIdx]?.id}"]`)
+        if (prevEl && nextEl) {
+          indicatorY = (prevEl.getBoundingClientRect().bottom + nextEl.getBoundingClientRect().top) / 2
+        }
+      }
+
+      return { idx: bestIdx, indicatorY }
+    }
+
+    let latestDropIdx: number | null = null
+
+    function onMouseMove(ev: MouseEvent) {
+      const { idx, indicatorY } = findDropIndex(ev.clientY)
+      latestDropIdx = idx
+      setDropTargetIndex(idx)
+      setDropIndicatorY(indicatorY)
+    }
+
+    function onMouseUp() {
+      window.removeEventListener("mousemove", onMouseMove)
+      window.removeEventListener("mouseup", onMouseUp)
+
+      setDragging(null)
+      setDropTargetIndex(null)
+      setDropIndicatorY(null)
+
+      if (latestDropIdx != null && latestDropIdx !== fromIndex && latestDropIdx !== fromIndex + 1) {
+        const adjustedTo = latestDropIdx > fromIndex ? latestDropIdx - 1 : latestDropIdx
+        sendToParent({
+          type: "REORDER_SECTIONS",
+          payload: { fromIndex, toIndex: adjustedTo },
+        })
+      }
+    }
+
+    window.addEventListener("mousemove", onMouseMove)
+    window.addEventListener("mouseup", onMouseUp)
+  }, [sections])
 
   // Recompute insert points whenever sections change (after render)
   useEffect(() => {
@@ -372,6 +550,8 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
   // Click — select or deselect (suppress when inline editing)
   const handleClick = useCallback((e: MouseEvent) => {
     if (editingBlockId) return
+    // Skip clicks on insert point buttons — they handle their own messages
+    if ((e.target as HTMLElement).closest?.("[data-insert-point]")) return
     const target = findEditorTarget(e.target as Element)
     if (target) {
       // Shift+click on a block → multi-select
@@ -420,12 +600,23 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
     }
   }, [startEditing])
 
-  // Escape key — stop inline editing
+  // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape" && editingBlockId) {
       stopEditing()
+      return
     }
-  }, [editingBlockId, stopEditing])
+    // Delete/Backspace — delete selected section or block
+    if ((e.key === "Delete" || e.key === "Backspace") && !editingBlockId && selected) {
+      e.preventDefault()
+      if (selected.kind === "section") {
+        sendToParent({ type: "DELETE_SECTION", payload: { sectionId: selected.id } })
+      } else {
+        sendToParent({ type: "DELETE_BLOCK", payload: { blockId: selected.id } })
+      }
+      setSelected(null)
+    }
+  }, [editingBlockId, stopEditing, selected])
 
   useEffect(() => {
     if (isTouch) {
@@ -456,6 +647,153 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
   // Suppress unused-var warning — longPressId used for visual feedback below
   void longPressId
 
+  // ─── Block drag-to-reorder ────────────────────────────────────────────────
+
+  const handleBlockDragStart = useCallback((e: React.MouseEvent, blockId: string) => {
+    e.preventDefault()
+    // Find the section and zone that own this block
+    let ownerSectionId: string | null = null
+    let ownerZoneId: string | null = null
+    let fromIndex = -1
+    for (const section of sections) {
+      for (const zone of section.contentZones) {
+        const idx = zone.blocks.findIndex(b => b.id === blockId)
+        if (idx !== -1) {
+          ownerSectionId = section.id
+          ownerZoneId = zone.id
+          fromIndex = idx
+          break
+        }
+      }
+      if (ownerSectionId) break
+    }
+    if (!ownerSectionId || !ownerZoneId || fromIndex === -1) return
+
+    const zone = sections.find(s => s.id === ownerSectionId)?.contentZones.find(z => z.id === ownerZoneId)
+    if (!zone) return
+    const blockIds = zone.blocks.map(b => b.id)
+
+    setDragging({ sectionId: ownerSectionId, fromIndex })
+
+    let latestDropIdx: number | null = null
+
+    function onMouseMove(ev: MouseEvent) {
+      const y = ev.clientY
+      let bestIdx = 0
+      let bestDist = Infinity
+      for (let i = 0; i <= blockIds.length; i++) {
+        let gapY: number
+        if (i === 0) {
+          const el = document.querySelector(`[data-block-id="${blockIds[0]}"]`)
+          gapY = el ? el.getBoundingClientRect().top : 0
+        } else if (i === blockIds.length) {
+          const el = document.querySelector(`[data-block-id="${blockIds[blockIds.length - 1]}"]`)
+          gapY = el ? el.getBoundingClientRect().bottom : 0
+        } else {
+          const prevEl = document.querySelector(`[data-block-id="${blockIds[i - 1]}"]`)
+          const nextEl = document.querySelector(`[data-block-id="${blockIds[i]}"]`)
+          if (prevEl && nextEl) {
+            gapY = (prevEl.getBoundingClientRect().bottom + nextEl.getBoundingClientRect().top) / 2
+          } else continue
+        }
+        const dist = Math.abs(y - gapY)
+        if (dist < bestDist) { bestDist = dist; bestIdx = i }
+      }
+      latestDropIdx = bestIdx
+      setDropTargetIndex(bestIdx)
+
+      // Compute indicator Y
+      if (bestIdx === 0) {
+        const el = document.querySelector(`[data-block-id="${blockIds[0]}"]`)
+        setDropIndicatorY(el ? el.getBoundingClientRect().top : null)
+      } else if (bestIdx === blockIds.length) {
+        const el = document.querySelector(`[data-block-id="${blockIds[blockIds.length - 1]}"]`)
+        setDropIndicatorY(el ? el.getBoundingClientRect().bottom : null)
+      } else {
+        const prevEl = document.querySelector(`[data-block-id="${blockIds[bestIdx - 1]}"]`)
+        const nextEl = document.querySelector(`[data-block-id="${blockIds[bestIdx]}"]`)
+        if (prevEl && nextEl) {
+          setDropIndicatorY((prevEl.getBoundingClientRect().bottom + nextEl.getBoundingClientRect().top) / 2)
+        }
+      }
+    }
+
+    function onMouseUp() {
+      window.removeEventListener("mousemove", onMouseMove)
+      window.removeEventListener("mouseup", onMouseUp)
+      setDragging(null)
+      setDropTargetIndex(null)
+      setDropIndicatorY(null)
+
+      if (latestDropIdx != null && latestDropIdx !== fromIndex && latestDropIdx !== fromIndex + 1) {
+        const adjustedTo = latestDropIdx > fromIndex ? latestDropIdx - 1 : latestDropIdx
+        sendToParent({
+          type: "REORDER_BLOCK",
+          payload: { sectionId: ownerSectionId!, zoneId: ownerZoneId!, fromIndex, toIndex: adjustedTo },
+        })
+      }
+    }
+
+    window.addEventListener("mousemove", onMouseMove)
+    window.addEventListener("mouseup", onMouseUp)
+  }, [sections])
+
+  // ─── Block resize (column span) ─────────────────────────────────────────
+
+  const handleBlockResizeStart = useCallback((side: "left" | "right", e: React.MouseEvent, blockId: string) => {
+    e.preventDefault()
+    // Find block info
+    let ownerSectionId: string | null = null
+    let currentColSpan = 12
+    for (const section of sections) {
+      for (const zone of section.contentZones) {
+        const block = zone.blocks.find(b => b.id === blockId)
+        if (block) {
+          ownerSectionId = section.id
+          currentColSpan = block.position.colSpan
+          break
+        }
+      }
+      if (ownerSectionId) break
+    }
+    if (!ownerSectionId) return
+
+    const blockEl = document.querySelector(`[data-block-id="${blockId}"]`)
+    if (!blockEl) return
+    const startX = e.clientX
+    const startWidth = blockEl.getBoundingClientRect().width
+    // Each grid column = total zone width / 12
+    const zoneEl = blockEl.parentElement
+    if (!zoneEl) return
+    const colWidth = zoneEl.getBoundingClientRect().width / 12
+
+    function onMouseMove(ev: MouseEvent) {
+      const dx = side === "right" ? ev.clientX - startX : startX - ev.clientX
+      const newWidth = startWidth + dx
+      const newSpan = Math.max(1, Math.min(12, Math.round(newWidth / colWidth)))
+      if (newSpan !== currentColSpan) {
+        currentColSpan = newSpan
+        // Live preview: update the block element width
+        const el = document.querySelector(`[data-block-id="${blockId}"]`) as HTMLElement
+        if (el) {
+          el.style.gridColumn = `span ${newSpan}`
+        }
+      }
+    }
+
+    function onMouseUp() {
+      window.removeEventListener("mousemove", onMouseMove)
+      window.removeEventListener("mouseup", onMouseUp)
+      sendToParent({
+        type: "RESIZE_BLOCK",
+        payload: { sectionId: ownerSectionId!, blockId, colSpan: currentColSpan },
+      })
+    }
+
+    window.addEventListener("mousemove", onMouseMove)
+    window.addEventListener("mouseup", onMouseUp)
+  }, [sections])
+
   const isHoverSuppressed = hovered && selected && hovered.id === selected.id
   const isInlineEditing = editingBlockId !== null
   const multiSelectCount = selectedBlockIds.length
@@ -483,9 +821,39 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
         <OverlayBox
           rect={selected.rect}
           color={longPressId === selected.id ? "#f97316" : "#3b82f6"}
-          showHandles={selected.kind === "block"}
           showSectionLabel={selected.kind === "section"}
-          label={longPressId === selected.id ? "Drag mode" : undefined}
+          showDragHandle={
+            selected.kind === "section"
+              ? sections.length > 1
+              : true
+          }
+          onDragStart={
+            selected.kind === "section"
+              ? (e) => handleDragStart(e, selected.id)
+              : (e) => handleBlockDragStart(e, selected.id)
+          }
+          showResizeHandles={selected.kind === "block"}
+          onResizeStart={selected.kind === "block"
+            ? (side, e) => handleBlockResizeStart(side, e, selected.id)
+            : undefined
+          }
+          showDelete
+          onDelete={() => {
+            if (selected.kind === "section") {
+              sendToParent({ type: "DELETE_SECTION", payload: { sectionId: selected.id } })
+            } else {
+              sendToParent({ type: "DELETE_BLOCK", payload: { blockId: selected.id } })
+            }
+            setSelected(null)
+          }}
+          label={
+            longPressId === selected.id ? "Drag mode"
+            : selected.kind === "section" ? undefined
+            : (() => {
+                const el = document.querySelector(`[data-block-id="${selected.id}"]`)
+                return el?.getAttribute("data-block-type") ?? "Block"
+              })()
+          }
         />
       )}
 
@@ -495,7 +863,7 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
           key={id}
           rect={rect}
           color="rgba(59,130,246,0.45)"
-          showHandles={false}
+          showResizeHandles={false}
         />
       ))}
 
@@ -525,10 +893,29 @@ export function EditorRuntime({ sections, selectedBlockIds = [] }: EditorRuntime
         )
       })()}
 
-      {/* Insert points between sections */}
-      {insertPoints.map((point) => (
+      {/* Insert points between sections (hidden while dragging) */}
+      {!dragging && insertPoints.map((point) => (
         <InsertPointButton key={point.sectionId} point={point} />
       ))}
+
+      {/* Drop indicator line while dragging */}
+      {dragging && dropIndicatorY != null && dropTargetIndex != null && (
+        <div
+          data-drop-index={dropTargetIndex}
+          style={{
+            position: "fixed",
+            top: dropIndicatorY - 2,
+            left: 0,
+            right: 0,
+            height: 4,
+            background: "#3b82f6",
+            borderRadius: 2,
+            zIndex: 10002,
+            pointerEvents: "none",
+            boxShadow: "0 0 8px rgba(59,130,246,0.5)",
+          }}
+        />
+      )}
     </>
   )
 }

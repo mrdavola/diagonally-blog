@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BookOpen, PlayCircle, GitFork } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { NAV_LINKS, SOCIAL_LINKS, BRAND } from "@/lib/constants";
+import { addNewsletterSubscriber } from "@/lib/submissions";
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   BookOpen,
@@ -41,6 +42,7 @@ export function Footer() {
         setError(data.error ?? "Something went wrong.");
         return;
       }
+      await addNewsletterSubscriber(email);
       setSuccess(true);
       setEmail("");
     } catch {

@@ -82,13 +82,16 @@ export interface SectionLayout {
   gap: number                  // px
 }
 
+export type BackgroundPresetId = "space-deep" | "space-mid" | "cream"
+
 export interface SectionBackground {
-  type: "none" | "color" | "gradient" | "image" | "video"
+  type: "none" | "color" | "gradient" | "image" | "video" | "preset"
   color?: string
   gradient?: { from: string; to: string; angle: number }
   image?: { url: string; focalPoint: { x: number; y: number }; opacity: number }
   video?: { url: string; posterUrl: string }
   overlay?: { color: string; opacity: number }
+  presetId?: BackgroundPresetId
 }
 
 export interface SectionDivider {
@@ -223,6 +226,7 @@ export type ParentToCanvasMessage =
   | { type: "MOVE_BLOCK"; payload: { blockId: string; fromSectionId: string; toSectionId: string; position: BlockPosition } }
   | { type: "SET_VIEWPORT"; payload: { viewport: "desktop" | "tablet" | "mobile" } }
   | { type: "SYNC_STATE"; payload: { sections: Section[] } }
+  | { type: "SYNC_STYLES"; payload: { styles: SiteStyles } }
   | { type: "DESELECT" }
   | { type: "SYNC_MULTI_SELECT"; payload: { selectedBlockIds: string[] } }
 
@@ -237,6 +241,11 @@ export type CanvasToParentMessage =
   | { type: "ELEMENT_RESIZED"; payload: { sectionId: string; blockId: string; newPosition: BlockPosition } }
   | { type: "INLINE_EDIT_STARTED"; payload: { sectionId: string; blockId: string } }
   | { type: "INLINE_EDIT_ENDED"; payload: { sectionId: string; blockId: string } }
+  | { type: "REORDER_SECTIONS"; payload: { fromIndex: number; toIndex: number } }
+  | { type: "DELETE_SECTION"; payload: { sectionId: string } }
+  | { type: "DELETE_BLOCK"; payload: { blockId: string } }
+  | { type: "REORDER_BLOCK"; payload: { sectionId: string; zoneId: string; fromIndex: number; toIndex: number } }
+  | { type: "RESIZE_BLOCK"; payload: { sectionId: string; blockId: string; colSpan: number } }
 
 // ─── Editor UI State ───
 export type EditorMode = "management" | "editing"

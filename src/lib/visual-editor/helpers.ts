@@ -123,6 +123,29 @@ export function deepCloneWithNewIds(section: Section): Section {
   return cloned
 }
 
+/** Reorder a block within a zone */
+export function reorderBlockInZone(
+  sections: Section[],
+  sectionId: string,
+  zoneId: string,
+  fromIndex: number,
+  toIndex: number
+): Section[] {
+  return sections.map(section => {
+    if (section.id !== sectionId) return section
+    return {
+      ...section,
+      contentZones: section.contentZones.map(zone => {
+        if (zone.id !== zoneId) return zone
+        const blocks = [...zone.blocks]
+        const [moved] = blocks.splice(fromIndex, 1)
+        blocks.splice(toIndex, 0, moved)
+        return { ...zone, blocks }
+      }),
+    }
+  })
+}
+
 /** Insert a block into a zone after a specific block ID, or at the end if not found */
 export function insertBlockAfterInZone(
   sections: Section[],

@@ -4,9 +4,13 @@ import { Clock, List, Monitor, Paintbrush, Redo2, Smartphone, Tablet, Undo2 } fr
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
 import type { Viewport } from "@/lib/visual-editor/types"
 
+export type PublishStatus = "idle" | "publishing" | "published" | "error"
+
 interface EditorTopBarProps {
   onExit: () => void
   onSave: () => void
+  onPublish: () => void
+  publishStatus: PublishStatus
 }
 
 const VIEWPORT_OPTIONS: { value: Viewport; Icon: React.ComponentType<{ size?: number }> }[] = [
@@ -15,7 +19,7 @@ const VIEWPORT_OPTIONS: { value: Viewport; Icon: React.ComponentType<{ size?: nu
   { value: "mobile",  Icon: Smartphone },
 ]
 
-export function EditorTopBar({ onExit, onSave }: EditorTopBarProps) {
+export function EditorTopBar({ onExit, onSave, onPublish, publishStatus }: EditorTopBarProps) {
   const pageTitle    = useEditorStore(s => s.pageTitle)
   const saveStatus   = useEditorStore(s => s.saveStatus)
   const viewport     = useEditorStore(s => s.viewport)
@@ -51,6 +55,13 @@ export function EditorTopBar({ onExit, onSave }: EditorTopBarProps) {
           className="h-7 px-3 text-sm font-medium bg-black text-white rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-800 transition-colors"
         >
           Save
+        </button>
+        <button
+          onClick={onPublish}
+          disabled={publishStatus === "publishing"}
+          className="h-7 px-3 text-sm font-medium bg-emerald-600 text-white rounded disabled:opacity-40 disabled:cursor-not-allowed hover:bg-emerald-700 transition-colors"
+        >
+          {publishStatus === "publishing" ? "Publishing…" : publishStatus === "published" ? "Published!" : "Publish"}
         </button>
         <button
           onClick={onExit}

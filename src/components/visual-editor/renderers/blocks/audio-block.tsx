@@ -17,12 +17,12 @@ export function AudioBlock({ block }: AudioBlockProps) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-cream rounded-xl px-5 py-4 flex flex-col gap-3">
       {title && (
-        <p className="text-sm font-medium text-gray-700 mb-2">{title}</p>
+        <p className="text-sm font-semibold text-text-dark tracking-wide">{title}</p>
       )}
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <audio controls src={url} className="w-full" />
+      <audio controls src={url} className="w-full accent-blue-deep" />
     </div>
   )
 }

@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import type { EditorBlock } from "@/lib/visual-editor/types"
 
 interface FormField {
@@ -23,6 +26,35 @@ export function FormBlock({ block }: FormBlockProps) {
       ? block.props.submitLabel
       : "Submit"
 
+  const [values, setValues] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function handleChange(label: string, value: string) {
+    setValues((prev) => ({ ...prev, [label]: value }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      })
+      if (!res.ok) throw new Error("Submission failed")
+      setSuccess(true)
+      setValues({})
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (fields.length === 0) {
     return (
       <div className="flex items-center justify-center w-full h-24 bg-gray-100 border-2 border-dashed border-gray-300 rounded text-gray-400 text-sm">
@@ -31,8 +63,16 @@ export function FormBlock({ block }: FormBlockProps) {
     )
   }
 
+  if (success) {
+    return (
+      <div className="flex items-center justify-center w-full py-8 text-green-600 text-sm font-medium">
+        Thank you! Your message has been sent.
+      </div>
+    )
+  }
+
   return (
-    <form className="flex flex-col gap-4 w-full" onSubmit={(e) => e.preventDefault()}>
+    <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
       {fields.map((field, i) => (
         <div key={i} className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-700">
@@ -43,27 +83,38 @@ export function FormBlock({ block }: FormBlockProps) {
             <textarea
               className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none resize-none h-24"
               placeholder={field.label}
-              readOnly
+              required={field.required}
+              value={values[field.label] ?? ""}
+              onChange={(e) => handleChange(field.label, e.target.value)}
             />
           ) : field.type === "select" ? (
-            <select className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none bg-white">
-              <option>Select {field.label}</option>
+            <select
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none bg-white"
+              required={field.required}
+              value={values[field.label] ?? ""}
+              onChange={(e) => handleChange(field.label, e.target.value)}
+            >
+              <option value="">Select {field.label}</option>
             </select>
           ) : (
             <input
               type={field.type ?? "text"}
               className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none"
               placeholder={field.label}
-              readOnly
+              required={field.required}
+              value={values[field.label] ?? ""}
+              onChange={(e) => handleChange(field.label, e.target.value)}
             />
           )}
         </div>
       ))}
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <button
         type="submit"
-        className="mt-2 self-start rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+        disabled={loading}
+        className="mt-2 self-start rounded-xl bg-blue-deep px-6 py-2.5 text-sm font-medium text-white hover:opacity-80 transition-colors disabled:opacity-50"
       >
-        {submitLabel}
+        {loading ? "Sending…" : submitLabel}
       </button>
     </form>
   )

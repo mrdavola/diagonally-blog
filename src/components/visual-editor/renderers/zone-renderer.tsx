@@ -90,8 +90,9 @@ const BLOCK_COMPONENTS: Record<
 function getBlockWrapperStyles(block: EditorBlock): React.CSSProperties {
   const { position, style } = block
   const css: React.CSSProperties = {
-    gridColumn: `${position.col} / span ${position.colSpan}`,
-    gridRow: `${position.row} / span ${position.rowSpan}`,
+    // Use span-only for gridColumn so CSS grid auto-flow handles row placement.
+    // Explicit col/row positions (all defaulting to 1) caused blocks to pile up.
+    gridColumn: `span ${position.colSpan}`,
   }
 
   if (style.margin) {
@@ -127,6 +128,8 @@ export function ZoneRenderer({ zone }: ZoneRendererProps) {
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${zone.gridColumns}, 1fr)`,
+        gridAutoRows: "min-content",
+        gap: 16,
       }}
     >
       {zone.blocks.map((block) => {

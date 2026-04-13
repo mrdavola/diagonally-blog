@@ -255,12 +255,13 @@ function DividerContent({ block, onUpdateProps }: ContentTabProps) {
     <>
       <Field label="Style">
         <Select
-          value={p.style ?? "solid"}
+          value={p.style ?? "line"}
           onChange={(v) => onUpdateProps({ style: v })}
           options={[
-            { value: "solid", label: "Solid" },
-            { value: "dashed", label: "Dashed" },
-            { value: "dotted", label: "Dotted" },
+            { value: "line", label: "Line" },
+            { value: "dots", label: "Dots" },
+            { value: "wave", label: "Wave" },
+            { value: "gradient", label: "Gradient" },
           ]}
         />
       </Field>
@@ -513,6 +514,9 @@ function PricingCardContent({ block, onUpdateProps }: ContentTabProps) {
       <Field label="CTA label">
         <TextInput value={String(p.ctaLabel ?? "")} onChange={(v) => onUpdateProps({ ctaLabel: v })} placeholder="Get started" />
       </Field>
+      <Field label="CTA URL">
+        <TextInput value={String(p.ctaHref ?? "")} onChange={(v) => onUpdateProps({ ctaHref: v })} placeholder="https://..." />
+      </Field>
       <label className="mb-3 flex items-center gap-2 text-sm text-gray-600">
         <input
           type="checkbox"
@@ -594,6 +598,195 @@ function GalleryContent({ block, onUpdateProps }: ContentTabProps) {
   )
 }
 
+function EmbedContent({ block, onUpdateProps }: ContentTabProps) {
+  const p = block.props as Record<string, string>
+  return (
+    <Field label="Embed URL">
+      <TextInput value={p.url ?? ""} onChange={(v) => onUpdateProps({ url: v })} placeholder="https://..." />
+    </Field>
+  )
+}
+
+function CodeContent({ block, onUpdateProps }: ContentTabProps) {
+  const p = block.props as Record<string, string>
+  return (
+    <>
+      <Field label="Language">
+        <TextInput value={p.language ?? ""} onChange={(v) => onUpdateProps({ language: v })} placeholder="javascript" />
+      </Field>
+      <Field label="Code">
+        <Textarea value={p.code ?? ""} onChange={(v) => onUpdateProps({ code: v })} rows={8} />
+      </Field>
+    </>
+  )
+}
+
+function AudioContent({ block, onUpdateProps }: ContentTabProps) {
+  const p = block.props as Record<string, string>
+  return (
+    <>
+      <Field label="Audio URL">
+        <TextInput value={p.src ?? ""} onChange={(v) => onUpdateProps({ src: v })} placeholder="https://..." />
+      </Field>
+      <Field label="Title">
+        <TextInput value={p.title ?? ""} onChange={(v) => onUpdateProps({ title: v })} placeholder="Track title" />
+      </Field>
+    </>
+  )
+}
+
+function TabsContent({ block, onUpdateProps }: ContentTabProps) {
+  const tabs = (block.props.tabs as Array<{ label: string; content: string }>) ?? []
+
+  function updateTab(index: number, field: "label" | "content", value: string) {
+    const next = tabs.map((tab, i) => (i === index ? { ...tab, [field]: value } : tab))
+    onUpdateProps({ tabs: next })
+  }
+
+  function addTab() {
+    onUpdateProps({ tabs: [...tabs, { label: "", content: "" }] })
+  }
+
+  function removeTab(index: number) {
+    onUpdateProps({ tabs: tabs.filter((_, i) => i !== index) })
+  }
+
+  return (
+    <div>
+      {tabs.map((tab, i) => (
+        <div key={i} className="mb-3 rounded-lg border border-gray-200 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-500">Tab {i + 1}</span>
+            <button onClick={() => removeTab(i)} className="text-xs text-red-400 hover:text-red-600">
+              Remove
+            </button>
+          </div>
+          <Field label="Label">
+            <TextInput value={tab.label} onChange={(v) => updateTab(i, "label", v)} placeholder="Tab name" />
+          </Field>
+          <Field label="Content">
+            <Textarea value={tab.content} onChange={(v) => updateTab(i, "content", v)} rows={4} />
+          </Field>
+        </div>
+      ))}
+      <button
+        onClick={addTab}
+        className="mt-1 w-full rounded-lg border border-dashed border-gray-300 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600"
+      >
+        + Add tab
+      </button>
+    </div>
+  )
+}
+
+function ComparisonTableContent({ block, onUpdateProps }: ContentTabProps) {
+  const p = block.props as Record<string, unknown>
+  const columns = (p.columns as string[]) ?? []
+  const rows = (p.rows as Array<{ label: string; cells: string[] }>) ?? []
+
+  function updateColumn(index: number, value: string) {
+    const next = columns.map((c, i) => (i === index ? value : c))
+    onUpdateProps({ columns: next })
+  }
+
+  function addColumn() {
+    const next = columns.concat("")
+    const updatedRows = rows.map((row) => ({ ...row, cells: [...row.cells, ""] }))
+    onUpdateProps({ columns: next, rows: updatedRows })
+  }
+
+  function removeColumn(index: number) {
+    const next = columns.filter((_, i) => i !== index)
+    const updatedRows = rows.map((row) => ({ ...row, cells: row.cells.filter((_, i) => i !== index) }))
+    onUpdateProps({ columns: next, rows: updatedRows })
+  }
+
+  function updateRowLabel(rowIndex: number, value: string) {
+    const next = rows.map((row, i) => (i === rowIndex ? { ...row, label: value } : row))
+    onUpdateProps({ rows: next })
+  }
+
+  function updateCell(rowIndex: number, colIndex: number, value: string) {
+    const next = rows.map((row, i) =>
+      i === rowIndex
+        ? { ...row, cells: row.cells.map((c, j) => (j === colIndex ? value : c)) }
+        : row
+    )
+    onUpdateProps({ rows: next })
+  }
+
+  function addRow() {
+    onUpdateProps({ rows: [...rows, { label: "", cells: columns.map(() => "") }] })
+  }
+
+  function removeRow(index: number) {
+    onUpdateProps({ rows: rows.filter((_, i) => i !== index) })
+  }
+
+  return (
+    <div>
+      <div className="mb-4">
+        <label className={labelCls}>Columns</label>
+        {columns.map((col, i) => (
+          <div key={i} className="mb-1.5 flex items-center gap-2">
+            <input
+              type="text"
+              className={inputCls}
+              value={col}
+              placeholder={`Column ${i + 1}`}
+              onChange={(e) => updateColumn(i, e.target.value)}
+            />
+            <button
+              onClick={() => removeColumn(i)}
+              className="shrink-0 text-xs text-red-400 hover:text-red-600"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={addColumn}
+          className="mt-1 w-full rounded-lg border border-dashed border-gray-300 py-1.5 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600"
+        >
+          + Add column
+        </button>
+      </div>
+
+      <div>
+        <label className={labelCls}>Rows</label>
+        {rows.map((row, ri) => (
+          <div key={ri} className="mb-3 rounded-lg border border-gray-200 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-gray-500">Row {ri + 1}</span>
+              <button onClick={() => removeRow(ri)} className="text-xs text-red-400 hover:text-red-600">
+                Remove
+              </button>
+            </div>
+            <Field label="Row label">
+              <TextInput value={row.label} onChange={(v) => updateRowLabel(ri, v)} placeholder="Feature name" />
+            </Field>
+            {columns.map((col, ci) => (
+              <Field key={ci} label={col || `Column ${ci + 1}`}>
+                <TextInput
+                  value={row.cells[ci] ?? ""}
+                  onChange={(v) => updateCell(ri, ci, v)}
+                  placeholder="Cell value"
+                />
+              </Field>
+            ))}
+          </div>
+        ))}
+        <button
+          onClick={addRow}
+          className="mt-1 w-full rounded-lg border border-dashed border-gray-300 py-2 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600"
+        >
+          + Add row
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function ContentTab(props: ContentTabProps) {
@@ -634,12 +827,47 @@ export function ContentTab(props: ContentTabProps) {
     case "pricing-card":
       return <PricingCardContent {...props} />
     case "gallery":
+      return <GalleryContent {...props} />
     case "image-carousel":
       return <GalleryContent {...props} />
+    case "embed":
+      return <EmbedContent {...props} />
+    case "code":
+      return <CodeContent {...props} />
+    case "audio":
+      return <AudioContent {...props} />
+    case "tabs":
+      return <TabsContent {...props} />
+    case "comparison-table":
+      return <ComparisonTableContent {...props} />
+    case "columns":
+      return (
+        <p className="text-sm text-gray-500">
+          Configure this block&apos;s content in the canvas. Nested block editing is not yet supported in this panel.
+        </p>
+      )
+    case "chart":
+      return (
+        <p className="text-sm text-gray-500">
+          Chart data editing coming soon. Configure this block&apos;s content in the canvas.
+        </p>
+      )
+    case "map":
+      return (
+        <p className="text-sm text-gray-500">
+          Map configuration coming soon. A Google Maps API key is required to enable this editor.
+        </p>
+      )
+    case "calendar":
+      return (
+        <p className="text-sm text-gray-500">
+          Calendar configuration coming soon. A calendar API integration is required to enable this editor.
+        </p>
+      )
     default:
       return (
         <p className="text-sm text-gray-500">
-          Configure this block&apos;s properties in the content tab.
+          Configure this block&apos;s content in the canvas.
         </p>
       )
   }

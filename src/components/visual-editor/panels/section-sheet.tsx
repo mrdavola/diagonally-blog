@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Drawer } from "vaul"
 import { X } from "lucide-react"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
-import type { Section, SectionLayout, SectionBackground, SectionDivider, AnimationConfig } from "@/lib/visual-editor/types"
+import type { Section, SectionLayout, SectionBackground, SectionDivider, AnimationConfig, BackgroundPresetId } from "@/lib/visual-editor/types"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -186,7 +186,7 @@ function StyleTab({ section, onChange }: StyleTabProps) {
       <SectionHeading>Background</SectionHeading>
       <Field label="Type">
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {(["none", "color", "gradient", "image"] as const).map((t) => (
+          {(["none", "color", "gradient", "image", "preset"] as const).map((t) => (
             <label key={t} className="flex items-center gap-1.5">
               <input
                 type="radio"
@@ -195,7 +195,7 @@ function StyleTab({ section, onChange }: StyleTabProps) {
                 checked={bg.type === t}
                 onChange={() => updateBg({ type: t })}
               />
-              <span className="text-sm capitalize text-gray-700">{t}</span>
+              <span className="text-sm capitalize text-gray-700">{t === "preset" ? "Theme" : t}</span>
             </label>
           ))}
         </div>
@@ -239,6 +239,37 @@ function StyleTab({ section, onChange }: StyleTabProps) {
               })
             }
           />
+        </Field>
+      )}
+
+      {bg.type === "preset" && (
+        <Field label="Theme Preset">
+          <div className="flex flex-col gap-2">
+            {([
+              { id: "space-deep" as BackgroundPresetId, label: "Space Deep", desc: "Dark navy + constellation", swatch: "#080c18" },
+              { id: "space-mid" as BackgroundPresetId, label: "Space Mid", desc: "Mid-dark navy", swatch: "#1e2540" },
+              { id: "cream" as BackgroundPresetId, label: "Cream", desc: "Warm off-white", swatch: "#faf7f2" },
+            ]).map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => updateBg({ presetId: preset.id })}
+                className={`flex items-center gap-3 rounded-lg border p-2.5 text-left transition-colors ${
+                  bg.presetId === preset.id
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <div
+                  className="h-8 w-8 rounded-md border border-gray-200 shrink-0"
+                  style={{ backgroundColor: preset.swatch }}
+                />
+                <div>
+                  <div className="text-sm font-medium text-gray-900">{preset.label}</div>
+                  <div className="text-xs text-gray-500">{preset.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </Field>
       )}
 

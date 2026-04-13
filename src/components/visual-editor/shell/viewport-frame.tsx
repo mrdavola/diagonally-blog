@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
 import { sendToCanvas, onCanvasMessage } from "@/lib/visual-editor/message-bridge"
-import type { Viewport } from "@/lib/visual-editor/types"
+import { reorderBlockInZone } from "@/lib/visual-editor/helpers"
+import type { Viewport, SiteStyles } from "@/lib/visual-editor/types"
 
 interface ViewportFrameProps {
   slug: string
+  siteStyles?: SiteStyles | null
 }
 
 const VIEWPORT_WIDTH: Record<Viewport, number | "full"> = {
@@ -15,13 +17,16 @@ const VIEWPORT_WIDTH: Record<Viewport, number | "full"> = {
   mobile:  375,
 }
 
-export function ViewportFrame({ slug }: ViewportFrameProps) {
+export function ViewportFrame({ slug, siteStyles }: ViewportFrameProps) {
   const sections            = useEditorStore(s => s.sections)
   const viewport            = useEditorStore(s => s.viewport)
   const selectSection       = useEditorStore(s => s.selectSection)
   const selectBlock         = useEditorStore(s => s.selectBlock)
   const deselect            = useEditorStore(s => s.deselect)
-  const setActivePanel      = useEditorStore(s => s.setActivePanel)
+  const reorderSections     = useEditorStore(s => s.reorderSections)
+  const deleteSection       = useEditorStore(s => s.deleteSection)
+  const deleteBlock         = useEditorStore(s => s.deleteBlock)
+  const updateBlockPosition = useEditorStore(s => s.updateBlockPosition)
   const toggleBlockSelection = useEditorStore(s => s.toggleBlockSelection)
   const selectedBlockIds    = useEditorStore(s => s.selectedBlockIds)
 
@@ -30,6 +35,16 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
   // Keep a stable ref to sections so the message listener always sees current value
   const sectionsRef = useRef(sections)
   useEffect(() => { sectionsRef.current = sections }, [sections])
+
+  // Keep a stable ref to siteStyles for CANVAS_READY handler
+  const siteStylesRef = useRef(siteStyles)
+  useEffect(() => { siteStylesRef.current = siteStyles }, [siteStyles])
+
+  // Sync site styles to canvas whenever they load/change
+  useEffect(() => {
+    if (!iframeRef.current || !siteStyles) return
+    sendToCanvas(iframeRef.current, { type: "SYNC_STYLES", payload: { styles: siteStyles } })
+  }, [siteStyles])
 
   // Sync multi-select state to canvas whenever it changes
   useEffect(() => {
@@ -53,6 +68,12 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
               type: "SYNC_STATE",
               payload: { sections: sectionsRef.current },
             })
+            if (siteStylesRef.current) {
+              sendToCanvas(iframeRef.current, {
+                type: "SYNC_STYLES",
+                payload: { styles: siteStylesRef.current },
+              })
+            }
           }
           break
         }
@@ -92,16 +113,45 @@ export function ViewportFrame({ slug }: ViewportFrameProps) {
           break
         }
 
-        case "REQUEST_INSERT": {
-          const { insertType } = message.payload
-          setActivePanel(insertType === "section" ? "section-inserter" : "block-inserter")
+        case "REORDER_SECTIONS": {
+          const { fromIndex, toIndex } = message.payload
+          reorderSections(fromIndex, toIndex)
           break
         }
+
+        case "DELETE_SECTION": {
+          deleteSection(message.payload.sectionId)
+          break
+        }
+
+        case "DELETE_BLOCK": {
+          deleteBlock(message.payload.blockId)
+          break
+        }
+
+        case "REORDER_BLOCK": {
+          const { sectionId, zoneId, fromIndex, toIndex } = message.payload
+          const state = useEditorStore.getState()
+          const newSections = reorderBlockInZone(state.sections, sectionId, zoneId, fromIndex, toIndex)
+          useEditorStore.getState().setSections(newSections)
+          useEditorStore.getState().setSaveStatus("unsaved")
+          break
+        }
+
+        case "RESIZE_BLOCK": {
+          const { sectionId, blockId, colSpan } = message.payload
+          updateBlockPosition(sectionId, blockId, { colSpan })
+          break
+        }
+
+        // REQUEST_INSERT is handled by the VisualEditor component which
+        // also calculates the correct insertion index. Skip here to avoid
+        // race conditions with deselect.
       }
     })
 
     return cleanup
-  }, [selectSection, selectBlock, deselect, setActivePanel, toggleBlockSelection])
+  }, [selectSection, selectBlock, deselect, reorderSections, deleteSection, deleteBlock, updateBlockPosition, toggleBlockSelection])
 
   const targetWidth = VIEWPORT_WIDTH[viewport]
   const isConstrained = targetWidth !== "full"

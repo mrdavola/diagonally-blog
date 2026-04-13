@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts"
 import { useRouter } from "next/navigation"
 import { useEditorStore } from "@/lib/visual-editor/editor-store"
-import { loadPageSections, saveDraftSections } from "@/lib/visual-editor/firestore"
-import { onCanvasMessage } from "@/lib/visual-editor/message-bridge"
+import { loadPageSections, saveDraftSections, loadSiteStyles, publishPageSections } from "@/lib/visual-editor/firestore"
+import { onCanvasMessage, sendToCanvas } from "@/lib/visual-editor/message-bridge"
+import type { SiteStyles } from "@/lib/visual-editor/types"
 import { useAuth } from "@/components/admin/auth-provider"
-import { EditorTopBar } from "./shell/editor-top-bar"
+import { EditorTopBar, type PublishStatus } from "./shell/editor-top-bar"
 import { ViewportFrame } from "./shell/viewport-frame"
 import { PropertyPanel } from "./panels/property-panel"
 import { PropertySheet } from "./panels/property-sheet"
@@ -33,6 +34,8 @@ export function VisualEditor({ slug }: VisualEditorProps) {
   const [loading, setLoading] = useState(true)
   const [insertionIndex, setInsertionIndex] = useState<number>(0)
   const [deviceType, setDeviceType] = useState<"mobile" | "tablet" | "desktop">("desktop")
+  const [siteStyles, setSiteStyles] = useState<SiteStyles | null>(null)
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>("idle")
 
   const init = useEditorStore((s) => s.init)
   const setSaveStatus = useEditorStore((s) => s.setSaveStatus)
@@ -56,16 +59,20 @@ export function VisualEditor({ slug }: VisualEditorProps) {
 
   const isMobile = deviceType === "mobile"
 
-  // ─── Load page on mount ──────────────────────────────────────────────────
+  // ─── Load page + site styles on mount ─────────────────────────────────────
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
       try {
-        const { title, sections } = await loadPageSections(slug)
+        const [{ title, sections }, styles] = await Promise.all([
+          loadPageSections(slug),
+          loadSiteStyles(),
+        ])
         if (!cancelled) {
           init(slug, title, sections)
+          setSiteStyles(styles)
           setLoading(false)
         }
       } catch (err) {
@@ -117,6 +124,22 @@ export function VisualEditor({ slug }: VisualEditorProps) {
     } catch (err) {
       console.error("[VisualEditor] Manual save failed:", err)
       setSaveStatus("unsaved")
+    }
+  }
+
+  // ─── Publish ──────────────────────────────────────────────────────────────
+
+  async function handlePublish() {
+    const { sections } = useEditorStore.getState()
+    setPublishStatus("publishing")
+    try {
+      await publishPageSections(slug, sections, user?.email ?? "unknown")
+      setPublishStatus("published")
+      setTimeout(() => setPublishStatus("idle"), 2500)
+    } catch (err) {
+      console.error("[VisualEditor] Publish failed:", err)
+      setPublishStatus("error")
+      setTimeout(() => setPublishStatus("idle"), 2500)
     }
   }
 
@@ -178,9 +201,11 @@ export function VisualEditor({ slug }: VisualEditorProps) {
       <EditorTopBar
         onExit={() => router.push("/admin/pages")}
         onSave={handleManualSave}
+        onPublish={handlePublish}
+        publishStatus={publishStatus}
       />
       <div className="relative flex-1 overflow-hidden">
-        <ViewportFrame slug={slug} />
+        <ViewportFrame slug={slug} siteStyles={siteStyles} />
 
         {/* Property panel / sheet — block selected */}
         {activePanel === "properties" && selectedBlockId && (

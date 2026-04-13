@@ -175,16 +175,25 @@
 /* ── Public prose styles for blog post content ─────────────────────────────── */
 
 .prose-diagonally {
-  font-family: var(--font-body);
-  font-size: 1.125rem;
+  font-family: var(--site-body-font, var(--font-body));
+  font-size: var(--site-body, 1.125rem);
   line-height: 1.8;
-  color: var(--color-text-dark);
+  color: inherit;
   max-width: 65ch;
 }
 
+.prose-diagonally h1 {
+  font-family: var(--site-heading-font, var(--font-display));
+  font-size: var(--site-h1, 2.5rem);
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
 .prose-diagonally h2 {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
+  font-family: var(--site-heading-font, var(--font-display));
+  font-size: var(--site-h2, 1.75rem);
   font-weight: 700;
   margin-top: 2.5rem;
   margin-bottom: 0.75rem;
@@ -192,8 +201,8 @@
 }
 
 .prose-diagonally h3 {
-  font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-family: var(--site-heading-font, var(--font-display));
+  font-size: var(--site-h3, 1.375rem);
   font-weight: 700;
   margin-top: 2rem;
   margin-bottom: 0.5rem;
@@ -201,8 +210,8 @@
 }
 
 .prose-diagonally h4 {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-family: var(--site-heading-font, var(--font-display));
+  font-size: var(--site-h4, 1.125rem);
   font-weight: 600;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
