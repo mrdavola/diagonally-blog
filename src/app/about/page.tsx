@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import FirestorePageWrapper from "@/components/firestore-page-wrapper"
 import AboutContent from "@/components/pages/about-content"
 
 export const metadata: Metadata = {
@@ -23,7 +22,5 @@ export const metadata: Metadata = {
 }
 
 export default function AboutPage() {
-  return (
-    <FirestorePageWrapper slug="about" fallback={<AboutContent />} loadingBg="bg-cream" />
-  )
+  return <AboutContent />
 }

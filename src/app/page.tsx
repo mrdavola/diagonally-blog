@@ -1,34 +1,26 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import PageRenderer from "@/components/page-renderer"
-import { getPublishedPageData } from "@/lib/visual-editor/firestore"
+import type { Metadata } from "next"
 import HomeContent from "@/components/pages/home-content"
-import type { PublishedPageData } from "@/lib/visual-editor/firestore"
+
+export const metadata: Metadata = {
+  title: "Diagonally — Math Games Built By Students, For Students",
+  description:
+    "An AI-powered math platform where K-12 students build games instead of taking tests. Piloted at Acton Academy. Think Diagonally.",
+  openGraph: {
+    title: "Diagonally — Math Games Built By Students, For Students",
+    description:
+      "An AI-powered math platform where K-12 students build games instead of taking tests. Piloted at Acton Academy. Think Diagonally.",
+    url: "https://diagonally.org",
+    siteName: "Diagonally",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Diagonally — Math Games Built By Students, For Students",
+    description:
+      "An AI-powered math platform where K-12 students build games instead of taking tests. Piloted at Acton Academy. Think Diagonally.",
+  },
+}
 
 export default function HomePage() {
-  const [pageData, setPageData] = useState<PublishedPageData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    getPublishedPageData("home")
-      .then((data) => {
-        setPageData(data)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
-
-  if (loading) return <div className="min-h-screen bg-space-deep" />
-
-  if (pageData?.publishedSections && pageData.publishedSections.length > 0) {
-    return (
-      <PageRenderer
-        publishedSections={pageData.publishedSections}
-        publishedBlocks={pageData.publishedBlocks}
-      />
-    )
-  }
-
   return <HomeContent />
 }

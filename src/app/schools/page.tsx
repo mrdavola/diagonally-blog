@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import FirestorePageWrapper from "@/components/firestore-page-wrapper"
 import SchoolsContent from "@/components/pages/schools-content"
 
 export const metadata: Metadata = {
@@ -23,7 +22,5 @@ export const metadata: Metadata = {
 }
 
 export default function SchoolsPage() {
-  return (
-    <FirestorePageWrapper slug="schools" fallback={<SchoolsContent />} loadingBg="bg-space-deep" />
-  )
+  return <SchoolsContent />
 }

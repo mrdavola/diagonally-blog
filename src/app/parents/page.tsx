@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import FirestorePageWrapper from "@/components/firestore-page-wrapper"
 import ParentsContent from "@/components/pages/parents-content"
 
 export const metadata: Metadata = {
@@ -23,7 +22,5 @@ export const metadata: Metadata = {
 }
 
 export default function ParentsPage() {
-  return (
-    <FirestorePageWrapper slug="parents" fallback={<ParentsContent />} loadingBg="bg-cream" />
-  )
+  return <ParentsContent />
 }
